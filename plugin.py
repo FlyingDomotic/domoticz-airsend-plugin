@@ -484,7 +484,16 @@ class BasePlugin:
 
     # Called when a heartbeat is sent
     def onHeartbeat(self):
-        pass
+        # Set the callback
+        callbackProtocol = str(self.protocolToListen)
+        callbackSpecs = self.webServerUrl+self.airSendCallbackName
+        jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
+        response = requests.post(url=self.webServiceUrl+'airsend/bind' \
+            ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+            ,data=jsonData \
+        )
+        if response.status_code != 200:
+            Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
 
     # Dumps configuration to log
     def dumpConfigToLog(self):
