@@ -473,7 +473,7 @@ class BasePlugin:
                     else:
                         device.Update(nValue=2, sValue = str(eventValue))
                 else:
-                    Domoticz.Error("Can't change AirSend cover type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue))
+                    Domoticz.Error("Can't change AirSend cover type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
                     return
             elif airSendDeviceType == self.airSendSwitchType:
                 if   eventType == 0 and eventValue == 19:   # Off
@@ -481,16 +481,16 @@ class BasePlugin:
                 elif eventType == 0 and eventValue == 20:   # On
                     device.Update(nValue=1, sValue = device.sValue)
                 else:
-                    Domoticz.Error("Can't change AirSend switch type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue))
+                    Domoticz.Error("Can't change AirSend switch type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
                     return
             elif airSendDeviceType == self.airSendButtonType:
                 if   eventType == 0 and eventValue == 18:   # Toggle
                     device.Update(nValue=0 if device.nValue else 1, sValue = device.sValue)
                 else:
-                    Domoticz.Error("Can't change AirSend button type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue))
+                    Domoticz.Error("Can't change AirSend button type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
                     return
             else:
-                Domoticz.Error("Can't change AirSend device type "+str(airSendDeviceType))
+                Domoticz.Error("Can't change AirSend device type "+str(airSendDeviceType)+' for '+device.Name)
                 return
 
     # Called when a device is removed from this plug-in
