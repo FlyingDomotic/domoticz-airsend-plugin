@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.1">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.2">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -295,14 +295,19 @@ class BasePlugin:
             callbackSpecs = self.webServerUrl+self.airSendCallbackName
             Domoticz.Debug('Binding prototol '+callbackProtocol+' to '+callbackSpecs)
             jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-            response = requests.post(url=self.webServiceUrl+'airsend/bind' \
-                ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-                ,data=jsonData \
-            )
-            if response.status_code != 200:
-                Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+            localUrl = self.webServiceUrl+'airsend/bind'
+            try:
+                response = requests.post(url=localUrl \
+                    ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+                    ,data=jsonData \
+                )
+            except requests.exceptions.RequestException as e:
+                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
             else:
-                Domoticz.Log(jsonData+ ' returned Ok')
+                if response.status_code != 200:
+                    Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+                else:
+                    Domoticz.Log(jsonData+ ' returned Ok')
 
         # Enable heartbeat
         Domoticz.Heartbeat(60)
@@ -313,11 +318,16 @@ class BasePlugin:
         configOk =  False
         # remove the callback
         Domoticz.Debug('Removing callback')
-        response = requests.get(url=self.webServiceUrl+'airsend/close' \
-            ,headers={'Accept': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-        )
-        if response.status_code != 200:
-            Domoticz.Error('Error '+str(response.status_code)+' in GET '+response.url)
+        localUrl = url=self.webServiceUrl+'airsend/close'
+        try:
+            response = requests.get(localUrl \
+                ,headers={'Accept': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+            )
+        except requests.exceptions.RequestException as e:
+            Domoticz.Error('Error getting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+        else:
+            if response.status_code != 200:
+                Domoticz.Error('Error '+str(response.status_code)+' in GET '+response.url)
         # Delete PHP callback file
         phpFile = self.webServerFolder+self.airSendCallbackName
         Domoticz.Log("Removing "+phpFile)
@@ -386,12 +396,17 @@ class BasePlugin:
         if airSendType != -1:
             elements = device.DeviceID.split('/')
             jsonData = '{"wait": true, "channel": {"id":"'+elements[0]+'","source":"'+elements[1]+'"}, "thingnotes":{"notes":[{"method":1,"type":'+str(airSendType)+',"value":'+str(airSendValue)+'}]}}'
-            response = requests.post(url=self.webServiceUrl+'airsend/transfer' \
-                ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-                ,data=jsonData \
-            )
-            if response.status_code != 200:
-                Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+            localUrl = self.webServiceUrl+'airsend/transfer'
+            try:
+                response = requests.post(url=localUrl
+                    ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+                    ,data=jsonData \
+                )
+            except requests.exceptions.RequestException as e:
+                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+            else:
+                if response.status_code != 200:
+                    Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
 
     # Called when a device is added to this plug-in
     def onDeviceAdded(self, Unit):
@@ -488,12 +503,17 @@ class BasePlugin:
         callbackProtocol = str(self.protocolToListen)
         callbackSpecs = self.webServerUrl+self.airSendCallbackName
         jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-        response = requests.post(url=self.webServiceUrl+'airsend/bind' \
-            ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-            ,data=jsonData \
-        )
-        if response.status_code != 200:
-            Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+        localUrl = url=self.webServiceUrl+'airsend/bind'
+        try:
+            response = requests.post(localUrl
+                ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+                ,data=jsonData \
+            )
+        except requests.exceptions.RequestException as e:
+            Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+        else:
+            if response.status_code != 200:
+                Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
 
     # Dumps configuration to log
     def dumpConfigToLog(self):
