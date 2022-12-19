@@ -24,61 +24,63 @@ Ce plugin est en phase de développement initial, et n'a été que partiellement
 
 ## Prerequisites / Prérequis
 
-- Domoticz 2020.0 or higher (but lower version could also work)
-- Make sure that your Domoticz supports Python plugins (https://www.domoticz.com/wiki/Using_Python_plugins)
-- Should you whish to listen to some protocol, you need to have a local web server with PHP enabled
+- Domoticz 2020.0 or higher (but lower version could also work).
+- Make sure that your Domoticz supports Python plugins (https://www.domoticz.com/wiki/Using_Python_plugins).
+- Make sure AirSend Web Service is installed and running on machine, and has been paired with devices you want to control.
+- Should you whish to listen to some protocol, you need to have a local web server with PHP enabled.
 
-- Domoticz 2022.0 ou supérieurs (les versions précédentes peuvent aussi fonctionner)
-- Vérifiez que votre version de Domoticz supporte les plugins Python (https://www.domoticz.com/wiki/Using_Python_plugins)
-- Si vous souhaitez écouter un protocole, vous devez en plus avoir un werveur web local avec php actif
+- Domoticz 2022.0 ou supérieurs (les versions précédentes peuvent aussi fonctionner).
+- Vérifiez que votre version de Domoticz supporte les plugins Python (https://www.domoticz.com/wiki/Using_Python_plugins).
+- Assurez-vous que le Web service AirSend est installé et actif sur la machine, et qu'il est appairé avec les unités que vous souhaitez contrôler.
+- Si vous souhaitez écouter un protocole, vous devez en plus avoir un werveur web local avec php actif.
 ## Installation
 
 Follow these steps:
 
-1. Clone repository into your Domoticz plugins folder
+1. Clone repository into your Domoticz plugins folder.
 ```
 cd domoticz/plugins
 git clone https://github.com/FlyingDomotic/domoticz-airsend-plugin.git AirSend
 ```
-2. Restart Domoticz
-3. Make sure that "Accept new Hardware Devices" is enabled in Domoticz settings
-4. Go to "Hardware" page and add new item with type "AirSend"
-5. Give JSON configuration file name to be used (located in AirSend plugin folder)
-6. Export your AirSend configuration and copy configuration.yaml file in AirSend plugin folder
+2. Restart Domoticz.
+3. Make sure that "Accept new Hardware Devices" is enabled in Domoticz settings.
+4. Go to "Hardware" page and add new item with type "AirSend".
+5. Give JSON configuration file name to be used (located in AirSend plugin folder).
+6. Export your AirSend configuration and copy configuration.yaml file in AirSend plugin folder.
 
 Suivez ces étapes :
 
-1. Clonez le dépôt GitHub dans le répertoire plugins de Domoticz
+1. Clonez le dépôt GitHub dans le répertoire plugins de Domoticz.
 ```
 cd domoticz/plugins
 git clone https://github.com/FlyingDomotic/domoticz-airsend-plugin.git AirSend
 ```
-2. Redémarrer Domoticz 
-3. Assurez-vous qu' "Acceptez les nouveaux dispositifs" est coché dans les paramètres de Domoticz
-4. Allez dans la page "Matériel" du bouton "configuration" et ajouter une entrée de type "AirSend"
-5. Entrez le nom du fichier de configuration JSON à utiliser (qui doit être dans le répertoire d'installation du plugin AirSend)
-6. Exportez votre configuration AirSend et copiez le fichier configuration.yaml dans le répertoire d'installation du plugin AirSend
+2. Redémarrer Domoticz.
+3. Assurez-vous qu' "Acceptez les nouveaux dispositifs" est coché dans les paramètres de Domoticz.
+4. Allez dans la page "Matériel" du bouton "configuration" et ajouter une entrée de type "AirSend".
+5. Entrez le nom du fichier de configuration JSON à utiliser (qui doit être dans le répertoire d'installation du plugin AirSend).
+6. Exportez votre configuration AirSend et copiez le fichier configuration.yaml dans le répertoire d'installation du plugin AirSend.
 
 ## Plugin update / Mise à jour du plugin
 
-1. Go to plugin folder and pull new version
+1. Go to plugin folder and pull new version :
 ```
 cd domoticz/plugins/AirSend
 git pull
 ```
-2. Restart Domoticz
+2. Restart Domoticz.
 
 Note: if you did any changes to plugin files and `git pull` command doesn't work for you anymore, you could stash all local changes using
 ```
 git stash
 ```
 
-1. Allez dans le répertoire du plugin et charger la nouvelle version
+1. Allez dans le répertoire du plugin et charger la nouvelle version :
 ```
 cd domoticz/plugins/AirSend
 git pull
 ```
-2. Relancez Domoticz
+2. Relancez Domoticz.
 
 Note: si vous avez fait des modifs dans les fichiers du plugin et que la commande `git pull` ne fonctionne pas, vous pouvez écraser les modifications locales avec la commande
 ```
@@ -87,7 +89,7 @@ git stash
 
 ## Configuration
 
-Plugin uses standard AirSend configuration export file (configuration.yaml) to get description of all AirSend devices. You should copy it in AirSend's plugin folder
+Plugin uses standard AirSend configuration export file (configuration.yaml) to get description of all AirSend devices. You should copy it in AirSend's plugin folder.
 In addition, plugin uses an external JSON configuration file to set installation specific parameters. Here's an example of syntax:
 
 Ce pluging utilise le fichier standard AirSend de configuration (configuration.yaml). Vous devez le copier dans le répertoire du plugin AirSend.
@@ -115,43 +117,43 @@ Let's see how this is constructed: / Voyons comment c'est construit :
 "domoticzRootUrl": "http://127.0.0.1:8080/",
 ```
 
-Specify Domoticz root URL. Could include username/password if required
-Donne l'adresse URL de base de Domoticz. Peut inclure également un utilisateur/Mot de passe si besoin
+Specify Domoticz root URL. Could include username/password if required.
+Donne l'adresse URL de base de Domoticz. Peut inclure également un utilisateur/mot de passe si besoin.
 
 ```ts
 "yamlConfigurationFile": "configuration.yaml",
 ```
-Specify AirSend configuration YAML file (would you change it)
-Donne le nom du fichier de configuration AirSend au format YAML
+Specify AirSend configuration YAML file (would you change it).
+Donne le nom du fichier de configuration AirSend au format YAML.
 
 ```ts
 "webServiceUrl": "http://127.0.0.1:33863/",
 ```
-Specify AirSend web service URL to use
-Donne l'adresse du web service AirSpend à utiliser
+Specify AirSend web service URL to use.
+Donne l'adresse du web service AirSpend à utiliser.
 
 ```ts
 "authorization" : "sp://xxxxxxxxxxxxxxxx@xxx.xxx.xxx.xxx?gw=0"
 ```
-Specify authorization data to use (in AirSend format)
-Donne l'authentification à utiliser, au format AirSend
+Specify authorization data to use (in AirSend format).
+Donne l'authentification à utiliser, au format AirSend.
 
 ```ts
 "protocolToListen" : 12345,
 ```
-Specify protocol id to listen to. Optionnal. See AirSend documentation to find it
-Donne le numéro de protocole à écouter. Voir les valeurs dans la documentation AirSend
+Specify protocol id to listen to. Optionnal. See AirSend documentation to find it.
+Donne le numéro de protocole à écouter. Voir les valeurs dans la documentation AirSend.
 
 ```ts
 "webServerFolder": "/var/www/html/",
 ```
-Specify local web server folder where the callback php file should be copied. Required only if 'protocolToListen' specified
+Specify local web server folder where the callback php file should be copied. Required only if 'protocolToListen' specified.
 Donne le nom du répertoire local du serveur web où le fichier de rappel php doit être copié. Requis uniquement si 'protocolToListen' est donné.
 
 ```ts
 "webServerUrl": "http://127.0.0.1/",
 ```
-Specify local web server address to use to call callback. Can contain sub-folder if callback not at root. Required only if 'protocolToListen' specified
+Specify local web server address to use to call callback. Can contain sub-folder if callback not at root. Required only if 'protocolToListen' specified.
 Donne l'adresse du serveur web local à utiliser pour accéder au rappel. Peut contenir un sous-répertoire si le fichier de rappel n'est pas à la racine. Requis uniquement si 'protocolToListen' est donné.
 
 ```ts
