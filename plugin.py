@@ -428,11 +428,7 @@ class BasePlugin:
             eventType = str(self.getValue(jsonEvent, 'type'))
             # As of now, work only for event type 3 (GOT)
             if eventType != '3':
-                # Ignore event type 1 (DATA), used for unknown protocol values
-                if eventType != '1':
-                    Domoticz.Error("Can't understand event type "+eventType+" yet...")
-                else:
-                    Domoticz.Debug("Ignoring event type "+eventType+" ...")
+                Domoticz.Error("Can't understand event type "+eventType+" yet...")
                 return
             # Get device Key from id & source
             deviceKey = str(self.getPathValue(jsonEvent, 'channel/id'))+"/"+str(self.getPathValue(jsonEvent, 'channel/source'))
@@ -477,7 +473,10 @@ class BasePlugin:
                     else:
                         device.Update(nValue=2, sValue = str(eventValue))
                 else:
-                    Domoticz.Error("Can't change AirSend cover type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
+                    if eventType == 1:  # Ignore event type 1 (DATA)
+                        Domoticz.Debug("Ignoring change AirSend cover type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
+                    else:
+                        Domoticz.Error("Can't change AirSend cover type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
                     return
             elif airSendDeviceType == self.airSendSwitchType:
                 if   eventType == 0 and eventValue == 19:   # Off
