@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.2">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.3">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -428,7 +428,11 @@ class BasePlugin:
             eventType = str(self.getValue(jsonEvent, 'type'))
             # As of now, work only for event type 3 (GOT)
             if eventType != '3':
-                Domoticz.Error("Can't understand event type "+eventType+" yet...")
+                # Ignore event type 1 (DATA), used for unknown protocol values
+                if eventType != '1':
+                    Domoticz.Error("Can't understand event type "+eventType+" yet...")
+                else:
+                    Domoticz.Debug("Ignoring event type "+eventType+" ...")
                 return
             # Get device Key from id & source
             deviceKey = str(self.getPathValue(jsonEvent, 'channel/id'))+"/"+str(self.getPathValue(jsonEvent, 'channel/source'))
