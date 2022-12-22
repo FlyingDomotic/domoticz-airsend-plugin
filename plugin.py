@@ -503,6 +503,10 @@ class BasePlugin:
 
     # Called when a heartbeat is sent
     def onHeartbeat(self):
+        # Exit if config not ok
+        if (self.configOk != True):
+            Domoticz.Error('Init not ok, onHeartbeat ignored')
+            return
         # Set the callback
         callbackProtocol = str(self.protocolToListen)
         callbackSpecs = self.webServerUrl+self.airSendCallbackName
