@@ -460,7 +460,7 @@ class BasePlugin:
             if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 if   eventType == 0 and eventValue == 35:   # Up
                     device.Update(nValue=0, sValue = '100')
-                if   eventType == 0 and eventValue == 38:   # User position
+                elif eventType == 0 and eventValue == 38:   # User position
                     device.Update(nValue=2, sValue = '50')
                 elif eventType == 0 and eventValue == 34:   # Down
                     device.Update(nValue=1, sValue = '0')
