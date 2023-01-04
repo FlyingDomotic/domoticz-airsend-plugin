@@ -291,23 +291,24 @@ class BasePlugin:
             except:
                 Domoticz.Error("Can't protect  "+phpFile)
             # Set the callback
-            callbackProtocol = str(self.protocolToListen)
-            callbackSpecs = self.webServerUrl+self.airSendCallbackName
-            Domoticz.Debug('Binding prototol '+callbackProtocol+' to '+callbackSpecs)
-            jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-            localUrl = self.webServiceUrl+'airsend/bind'
-            try:
-                response = requests.post(url=localUrl \
-                    ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-                    ,data=jsonData \
-                )
-            except requests.exceptions.RequestException as e:
-                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
-            else:
-                if response.status_code != 200:
-                    Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+            if self.protocolToListen:
+                callbackProtocol = str(self.protocolToListen)
+                callbackSpecs = self.webServerUrl+self.airSendCallbackName
+                Domoticz.Debug('Binding prototol '+callbackProtocol+' to '+callbackSpecs)
+                jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
+                localUrl = self.webServiceUrl+'airsend/bind'
+                try:
+                    response = requests.post(url=localUrl \
+                        ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+                        ,data=jsonData \
+                    )
+                except requests.exceptions.RequestException as e:
+                    Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
                 else:
-                    Domoticz.Log(jsonData+ ' returned Ok')
+                    if response.status_code != 200:
+                        Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+                    else:
+                        Domoticz.Log(jsonData+ ' returned Ok')
 
         # Enable heartbeat
         Domoticz.Heartbeat(60)
@@ -522,20 +523,21 @@ class BasePlugin:
             Domoticz.Error('Init not ok, onHeartbeat ignored')
             return
         # Set the callback
-        callbackProtocol = str(self.protocolToListen)
-        callbackSpecs = self.webServerUrl+self.airSendCallbackName
-        jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-        localUrl = url=self.webServiceUrl+'airsend/bind'
-        try:
-            response = requests.post(localUrl
-                ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-                ,data=jsonData \
-            )
-        except requests.exceptions.RequestException as e:
-            Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
-        else:
-            if response.status_code != 200:
-                Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+        if self.protocolToListen:
+            callbackProtocol = str(self.protocolToListen)
+            callbackSpecs = self.webServerUrl+self.airSendCallbackName
+            jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
+            localUrl = url=self.webServiceUrl+'airsend/bind'
+            try:
+                response = requests.post(localUrl
+                    ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+                    ,data=jsonData \
+                )
+            except requests.exceptions.RequestException as e:
+                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+            else:
+                if response.status_code != 200:
+                    Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
 
     # Dumps configuration to log
     def dumpConfigToLog(self):
