@@ -385,6 +385,20 @@ class BasePlugin:
                 airSendValue = 17   # Stop
             else:
                 Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+        elif Command == 'Open':
+            nValue = 1
+            if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
+                airSendType = 0
+                airSendValue = 20   # Open
+            else:
+                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+        elif Command == 'Close':
+            nValue = 0
+            if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
+                airSendType = 0
+                airSendValue = 21   # Close
+            else:
+                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Set Level':
             if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 9
