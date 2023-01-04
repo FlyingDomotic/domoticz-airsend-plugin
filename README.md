@@ -48,6 +48,8 @@ git clone https://github.com/FlyingDomotic/domoticz-airsend-plugin.git AirSend
 5. Give JSON configuration file name to be used (located in AirSend plugin folder).
 6. Export your AirSend configuration and copy configuration.yaml file in AirSend plugin folder.
 
+Thanks to one user, you can find at https://github.com/FlyingDomotic/domoticz-airsend-plugin/issues/2 an exemple of Docker file to install AirSend WebService.
+
 Suivez ces étapes :
 
 1. Clonez le dépôt GitHub dans le répertoire plugins de Domoticz.
@@ -60,6 +62,8 @@ git clone https://github.com/FlyingDomotic/domoticz-airsend-plugin.git AirSend
 4. Allez dans la page "Matériel" du bouton "configuration" et ajouter une entrée de type "AirSend".
 5. Entrez le nom du fichier de configuration JSON à utiliser (qui doit être dans le répertoire d'installation du plugin AirSend).
 6. Exportez votre configuration AirSend et copiez le fichier configuration.yaml dans le répertoire d'installation du plugin AirSend.
+
+Grâce à un utilisateur, vous pourrez trouver à https://github.com/FlyingDomotic/domoticz-airsend-plugin/issues/2 un exemple de fichier de configuration Docker pour le service Web AirSend.
 
 ## Plugin update / Mise à jour du plugin
 
