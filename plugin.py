@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.4">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.8">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -361,6 +361,9 @@ class BasePlugin:
             if airSendDeviceType == self.airSendSwitchType:
                 airSendType = 0
                 airSendValue = 19   # Off
+            elif airSendDeviceType == self.airSendButtonType:
+                airSendType = 0
+                airSendValue = 18   # Toggle
             elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 0
                 airSendValue = 35   # Up
@@ -371,7 +374,7 @@ class BasePlugin:
             if airSendDeviceType == self.airSendSwitchType:
                 airSendType = 0
                 airSendValue = 20   # On
-            if airSendDeviceType == self.airSendButtonType:
+            elif airSendDeviceType == self.airSendButtonType:
                 airSendType = 0
                 airSendValue = 18   # Toggle
             elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
@@ -388,14 +391,20 @@ class BasePlugin:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Open':
             nValue = 1
-            if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
+            if airSendDeviceType == self.airSendSwitchType:
+                airSendType = 0
+                airSendValue = 20   # On
+            elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 0
                 airSendValue = 20   # Open
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Close':
             nValue = 0
-            if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
+            if airSendDeviceType == self.airSendSwitchType:
+                airSendType = 0
+                airSendValue = 19   # Off
+            elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 0
                 airSendValue = 21   # Close
             else:
