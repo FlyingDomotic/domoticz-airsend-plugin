@@ -365,7 +365,7 @@ class BasePlugin:
                 airSendType = 0
                 airSendValue = 35   # Up
             else:
-                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+                Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'On':
             nValue = 1
             if airSendDeviceType == self.airSendSwitchType:
@@ -378,34 +378,34 @@ class BasePlugin:
                 airSendType = 0
                 airSendValue = 34   # Down
             else:
-                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+                Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Stop':
             nValue = 17
             if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 0
                 airSendValue = 17   # Stop
             else:
-                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+                Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Open':
             nValue = 1
             if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 0
                 airSendValue = 20   # Open
             else:
-                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+                Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Close':
             nValue = 0
             if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 0
                 airSendValue = 21   # Close
             else:
-                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+                Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Set Level':
             if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
                 airSendType = 9
                 airSendValue = Level
             else:
-                Domoticz.Error("Don't know how to execute "+command+" for type " + str(airSendDeviceType)+" on "+device.Name)
+                Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         else:
             Domoticz.Error('Command: "' + str(Command) + '" not supported yet for ' + device.Name+'. Please ask for support.')
         if airSendType != -1:
