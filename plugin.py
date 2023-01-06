@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.8">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.9">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -23,30 +23,95 @@ import os
 import json
 import yaml
 import requests
-import urllib.parse
 
 # Implements plug-in as class
 class BasePlugin:
+    # Global variables
     debugging = 'Normal'
-    yamlDevices = None
-    configOk = False
+    airSendCallbackName = 'airsend.php'
     eventDataName = 'AirSend event data'
     eventDataKey = "0"
     eventDataIdx = 0
-    airSendButtonType = 4096
-    airSendCoverType = 4097
-    airSendCoverPositionType = 4098
-    airSendSwitchType = 4099
-    airSendCallbackName = 'airsend.php'
+    authorization = None
+    configOk = False
     domoticzRootUrl = None
+    protocolToListen = None
     yamlConfigurationFile = None
+    yamlDevices = None
     webServerFolder = None
     webServerUrl = None
     webServiceUrl = None
-    protocolToListen = None
-    authorization = None
     mapping = []
-    
+
+    # AirSend remote types
+    airSendRemoteTypeButton = 4096
+    airSendRemoteTypeCover = 4097
+    airSendRemoteTypeCoverPosition = 4098
+    airSendRemoteTypeSwitch = 4099
+    # AirSend event types
+    airSendEventTypePending = 0
+    airSendEventTypeSent = 1
+    airSendEventTypeAck = 2
+    airSendEventTypeGot = 3
+    airSendEventTypeUnknown = 256
+    airSendEventTypeNetwork = 257
+    airSendEventTypeSynchronization = 258
+    airSendEventTypeSecurity = 259
+    airSendEventTypeBusy = 260
+    airSendEventTypeTimeout = 261
+    airSendEventTypeUnsupported = 262
+    airSendEventTypeIncomplete = 263
+    airSendEventTypeFull = 264
+    # AirSend note type
+    airSendNoteTypeState = 0
+    airSendNoteTypeData = 1
+    airSendNoteTypeTemperature = 2
+    airSendNoteTypeIlluminance = 3
+    airSendNoteTypeR_humidity = 4
+    airSendNoteTypeLevel = 9
+    # AirSend note values (commands)
+    airSendNoteValuePing = 1
+    airSendNoteValueProg = 2
+    airSendNoteValueUnprog = 3
+    airSendNoteValueReset = 4
+    airSendNoteValueStop = 17
+    airSendNoteValueToggle = 18
+    airSendNoteValueOff = 19
+    airSendNoteValueOn = 20
+    airSendNoteValueClose = 21
+    airSendNoteValueOpen = 22
+    airSendNoteValueMiddle = 33
+    airSendNoteValueDown = 34
+    airSendNoteValueUp = 35
+    airSendNoteValueLeft = 36
+    airSendNoteValueRight = 37
+    airSendNoteValueUserposition = 38
+
+    # Domoticz nValues and sValues
+    nValueOff = 0
+    sValueOff = '0'
+    nValueOpen = nValueOff
+    sValueOpen = sValueOff
+    nValueOn = 1
+    sValueOn = '100'
+    nValueClosed = nValueOn
+    sValueClosed = sValueOn
+    nValueLevel = 2
+    nValueUserPosition = nValueLevel
+    sValueUserPosition = '50'
+    nValueStop = 17
+
+    # Domoticz types, sub types and switch types
+    pTypeGeneralSwitch = 0xF4
+    sSwitchGeneralSwitch = 0x49
+    STYPE_OnOff = 0
+    STYPE_Blinds = 3
+    STYPE_PushOn = 9
+    STYPE_BlindsPosition = 21
+
+    # HTTP status codes
+    htppStatusOk = 200
+ 
     # Returns a dictionary value giving a key or default value if not existing
     def getValue(self, dict, key, default=''):
         if dict == None:
@@ -82,7 +147,7 @@ class BasePlugin:
     # Find a device by ID in devices table
     def getDevice(self, deviceId):
         for device in Devices:
-            if (Devices[device].DeviceID == deviceId) :
+            if (Devices[device].DeviceID == deviceId):
                 # Return device
                 return Devices[device]
         # Return None if not found
@@ -95,7 +160,7 @@ class BasePlugin:
             deviceParams = self.yamlDevices[airSendDevice]
             # Key is channel ID + channel source
             deviceKey = str(self.getPathValue(deviceParams, 'channel/id'))+"/"+str(self.getPathValue(deviceParams, 'channel/source'))
-            if (deviceKey == deviceId) :
+            if (deviceKey == deviceId):
                 # Return device
                 return deviceParams
         # Return None if not found
@@ -107,7 +172,7 @@ class BasePlugin:
         while True:
             exists = False
             for device in Devices:
-                if (device == nextDeviceId) :
+                if (device == nextDeviceId):
                     exists = True
                     break
             if (not exists):
@@ -199,7 +264,7 @@ class BasePlugin:
         # Go through YAML file to create devices
         self.yamlDevices = self.getPathValue(yamlConfigData, 'airsend/devices', '/', None)
         if self.yamlDevices == None:
-            Domoticz.Error("Can't find 'airsend' 'devices' in "+yamlConfigData)
+            Domoticz.Error("Can't find 'airsend' 'devices' in "+str(yamlConfigData))
             return
 
         for airSendDevice in self.yamlDevices:
@@ -213,18 +278,18 @@ class BasePlugin:
             # Create device if not already there
             deviceType = self.getValue(deviceParams, 'type')
             if self.getDevice(deviceKey) == None:
-                if  deviceType == self.airSendButtonType:   # Button
+                if  deviceType == self.airSendRemoteTypeButton:   # Button
                     Domoticz.Log("Creating button " + airSendDevice)
-                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=244, Subtype=73, Switchtype=0, DeviceID=deviceKey, Used=True).Create()
-                elif deviceType == self.airSendCoverType:  # Cover
+                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_PushOn, DeviceID=deviceKey, Used=True).Create()
+                elif deviceType == self.airSendRemoteTypeCover:  # Cover
                     Domoticz.Log("Creating cover " + airSendDevice)
-                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=244, Subtype=73, Switchtype=3, DeviceID=deviceKey, Used=True).Create()
-                elif deviceType == self.airSendCoverPositionType:  # Cover with position
+                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_Blinds, DeviceID=deviceKey, Used=True).Create()
+                elif deviceType == self.airSendRemoteTypeCoverPosition:  # Cover with position
                     Domoticz.Log("Creating cover with position " + airSendDevice)
-                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=244, Subtype=73, Switchtype=21, DeviceID=deviceKey, Used=True).Create()
-                elif deviceType == self.airSendSwitchType:  # Switch
+                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_BlindsPosition, DeviceID=deviceKey, Used=True).Create()
+                elif deviceType == self.airSendRemoteTypeSwitch:  # Switch
                     Domoticz.Log("Creating switch " + airSendDevice)
-                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=244, Subtype=73, Switchtype=0, DeviceID=deviceKey, Used=True).Create()
+                    Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_OnOff, DeviceID=deviceKey, Used=True).Create()
                 else:
                     Domoticz.Error("Don't know what "+str(deviceType)+" type could be...")
 
@@ -303,9 +368,9 @@ class BasePlugin:
                         ,data=jsonData \
                     )
                 except requests.exceptions.RequestException as e:
-                    Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+                    Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+': '+str(e))
                 else:
-                    if response.status_code != 200:
+                    if response.status_code != self.htppStatusOk:
                         Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
                     else:
                         Domoticz.Log(jsonData+ ' returned Ok')
@@ -316,18 +381,18 @@ class BasePlugin:
 
     # Called when plug-in stops
     def onStop(self):
-        configOk =  False
+        self.configOk =  False
         # remove the callback
         Domoticz.Debug('Removing callback')
-        localUrl = url=self.webServiceUrl+'airsend/close'
+        localUrl = self.webServiceUrl+'airsend/close'
         try:
             response = requests.get(localUrl \
                 ,headers={'Accept': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
             )
         except requests.exceptions.RequestException as e:
-            Domoticz.Error('Error getting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+            Domoticz.Error('Error getting '+localUrl+': '+str(e))
         else:
-            if response.status_code != 200:
+            if response.status_code != self.htppStatusOk:
                 Domoticz.Error('Error '+str(response.status_code)+' in GET '+response.url)
         # Delete PHP callback file
         phpFile = self.webServerFolder+self.airSendCallbackName
@@ -349,69 +414,71 @@ class BasePlugin:
         if not deviceParams:
             Domoticz.Error("Can't find "+device.DeviceID+' for '+device.Name+' in '+str(self.yamlDevices))
             return
-        # Get device current values
-        nValue = device.nValue
-        sValue = device.sValue
+        #D# # Get device current values
+        #D# nValue = device.nValue
+        #D# sValue = device.sValue
         airSendType = -1
         airSendValue = -1
         airSendDeviceType = self.getValue(deviceParams, 'type')
         # Update device depending on command
         if Command == 'Off':
-            nValue = 0
-            if airSendDeviceType == self.airSendSwitchType:
-                airSendType = 0
-                airSendValue = 19   # Off
-            elif airSendDeviceType == self.airSendButtonType:
-                airSendType = 0
-                airSendValue = 18   # Toggle
-            elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
-                airSendType = 0
-                airSendValue = 35   # Up
+            #D# nValue = nValueOff
+            if airSendDeviceType == self.airSendRemoteTypeSwitch:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueOff   # Off
+            elif airSendDeviceType == self.airSendRemoteTypeButton:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueToggle   # Toggle
+            elif airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueUp   # Up
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'On':
-            nValue = 1
-            if airSendDeviceType == self.airSendSwitchType:
-                airSendType = 0
-                airSendValue = 20   # On
-            elif airSendDeviceType == self.airSendButtonType:
-                airSendType = 0
-                airSendValue = 18   # Toggle
-            elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
-                airSendType = 0
-                airSendValue = 34   # Down
+            #D# nValue = nValueOn
+            if airSendDeviceType == self.airSendRemoteTypeSwitch:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueOn   # On
+            elif airSendDeviceType == self.airSendRemoteTypeButton:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueToggle   # Toggle
+            elif airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueDown   # Down
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Stop':
-            nValue = 17
-            if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
-                airSendType = 0
-                airSendValue = 17   # Stop
+            #D# nValue = nValueStop
+            if airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueStop   # Stop
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Open':
-            nValue = 1
-            if airSendDeviceType == self.airSendSwitchType:
-                airSendType = 0
-                airSendValue = 20   # On
-            elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
-                airSendType = 0
-                airSendValue = 20   # Open
+            #D# nValue = nValueOpen
+            if airSendDeviceType == self.airSendRemoteTypeSwitch:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueOn   # On
+            elif airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueUp   # Up
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Close':
-            nValue = 0
-            if airSendDeviceType == self.airSendSwitchType:
-                airSendType = 0
-                airSendValue = 19   # Off
-            elif airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
-                airSendType = 0
-                airSendValue = 21   # Close
+            #D# nValue = nValueClose
+            if airSendDeviceType == self.airSendRemoteTypeSwitch:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueOff   # Off
+            elif airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
+                airSendType = self.airSendNoteTypeState
+                airSendValue = self.airSendNoteValueDown   # Down
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Set Level':
-            if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
-                airSendType = 9
+            #D# nValue = nValueLevel
+            #D# sValue = str(Level)
+            if airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
+                airSendType = self.airSendNoteTypeLevel
                 airSendValue = Level
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
@@ -427,9 +494,9 @@ class BasePlugin:
                     ,data=jsonData \
                 )
             except requests.exceptions.RequestException as e:
-                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+':'+str(e))
             else:
-                if response.status_code != 200:
+                if response.status_code != self.htppStatusOk:
                     Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
 
     # Called when a device is added to this plug-in
@@ -451,7 +518,7 @@ class BasePlugin:
             jsonEvent = json.loads(event)
             eventType = str(self.getValue(jsonEvent, 'type'))
             # As of now, work only for event type 3 (GOT)
-            if eventType != '3':
+            if eventType != str(self.airSendEventTypeGot):
                 Domoticz.Error("Can't understand event type "+eventType+" yet...")
                 return
             # Get device Key from id & source
@@ -473,52 +540,52 @@ class BasePlugin:
             # Extract notes
             notes = self.getPathValue(jsonEvent,'thingnotes/notes')
             # Extract method, type and value
-            eventMethod = self.getValue(notes[0],'method')
-            eventType = self.getPathValue(notes[0],'type')
+            eventNoteMethod = self.getValue(notes[0],'method')
+            eventNoteType = self.getPathValue(notes[0],'type')
             eventValue = self.getPathValue(notes[0],'value')
-            Domoticz.Debug("Device "+device.Name+', method '+str(eventMethod)+', type '+str(eventType)+', value '+str(eventValue))
+            Domoticz.Debug("Device "+device.Name+', method '+str(eventNoteMethod)+', type '+str(eventNoteType)+', value '+str(eventValue))
             # Change Domoticz device depending on AirSend device type
             airSendDeviceType = self.getValue(deviceParams, 'type')
-            nValue = None
-            sValue = None
-            if airSendDeviceType == self.airSendCoverType or airSendDeviceType == self.airSendCoverPositionType:
-                if   eventType == 0 and eventValue == 35:   # Up
-                    device.Update(nValue=0, sValue = '100')
-                elif eventType == 0 and eventValue == 38:   # User position
-                    device.Update(nValue=2, sValue = '50')
-                elif eventType == 0 and eventValue == 34:   # Down
-                    device.Update(nValue=1, sValue = '0')
-                elif eventType == 0 and eventValue == 17:   # Stop
-                    device.Update(nValue=17, sValue = device.sValue)
-                elif eventType == 9:                        # Level in event value
+            #D# nValue = None
+            #D# sValue = None
+            if airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
+                if eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueUp:   # Up
+                    device.Update(nValue=self.nValueOpen, sValue = self.sValueOpen)
+                elif eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueUserposition:   # User position
+                    device.Update(nValue=self.nValueUserPosition, sValue = self.sValueUserPosition)
+                elif eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueDown:   # Down
+                    device.Update(nValue=self.nValueClosed, sValue = self.sValueClosed)
+                elif eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueStop:   # Stop
+                    device.Update(nValue=self.nValueStop, sValue = device.sValue)
+                elif eventNoteType == self.airSendNoteTypeLevel:                       # Level in event value
                     if int(eventValue) == 0:
-                        device.Update(nValue=1, sValue = '0')
+                        device.Update(nValue=self.nValueOff, sValue = self.sValueOff)
                     elif int(eventValue) == 100:
-                        device.Update(nValue=0, sValue = '100')
+                        device.Update(nValue=self.nValueOn, sValue = self.sValueOn)
                     else:
-                        device.Update(nValue=2, sValue = str(eventValue))
+                        device.Update(nValue=self.nValueLevel, sValue = str(eventValue))
                 else:
-                    if eventType == 1:  # Ignore event type 1 (DATA)
-                        Domoticz.Debug("Ignoring change AirSend cover type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
+                    if eventNoteType == self.airSendNoteTypeData:  # Ignore event type 1 (DATA)
+                        Domoticz.Debug("Ignoring change airSend cover type "+str(airSendDeviceType)+' with event type '+str(eventNoteType)+' and event value '+str(eventValue)+' for '+device.Name)
                     else:
-                        Domoticz.Error("Can't change AirSend cover type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
+                        Domoticz.Error("Can't change airSend cover type "+str(airSendDeviceType)+' with event type '+str(eventNoteType)+' and event value '+str(eventValue)+' for '+device.Name)
                     return
-            elif airSendDeviceType == self.airSendSwitchType:
-                if   eventType == 0 and eventValue == 19:   # Off
-                    device.Update(nValue=0, sValue = device.sValue)
-                elif eventType == 0 and eventValue == 20:   # On
-                    device.Update(nValue=1, sValue = device.sValue)
+            elif airSendDeviceType == self.airSendRemoteTypeSwitch:
+                if eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueOff:   # Off
+                    device.Update(nValue=self.nValueOff, sValue = self.sValueOff)
+                elif eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueOn:   # On
+                    device.Update(nValue=self.nValueOn, sValue = self.sValueOn)
                 else:
-                    Domoticz.Error("Can't change AirSend switch type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
+                    Domoticz.Error("Can't change airSend switch type "+str(airSendDeviceType)+' with event type '+str(eventNoteType)+' and event value '+str(eventValue)+' for '+device.Name)
                     return
-            elif airSendDeviceType == self.airSendButtonType:
-                if   eventType == 0 and eventValue == 18:   # Toggle
-                    device.Update(nValue=0 if device.nValue else 1, sValue = device.sValue)
+            elif airSendDeviceType == self.airSendRemoteTypeButton:
+                if eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueToggle:   # Toggle
+                    device.Update(nValue=self.nValueOff if device.nValue else self.nValueOn, sValue = self.sValueOff if device.nValue else self.sValueOn)
                 else:
-                    Domoticz.Error("Can't change AirSend button type "+str(airSendDeviceType)+' with event type '+str(eventType)+' and event value '+str(eventValue)+' for '+device.Name)
+                    Domoticz.Error("Can't change airSend button type "+str(airSendDeviceType)+' with event type '+str(eventNoteType)+' and event value '+str(eventValue)+' for '+device.Name)
                     return
             else:
-                Domoticz.Error("Can't change AirSend device type "+str(airSendDeviceType)+' for '+device.Name)
+                Domoticz.Error("Can't change airSend device type "+str(airSendDeviceType)+' for '+device.Name)
                 return
 
     # Called when a device is removed from this plug-in
@@ -536,16 +603,16 @@ class BasePlugin:
             callbackProtocol = str(self.protocolToListen)
             callbackSpecs = self.webServerUrl+self.airSendCallbackName
             jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-            localUrl = url=self.webServiceUrl+'airsend/bind'
+            localUrl = self.webServiceUrl+'airsend/bind'
             try:
                 response = requests.post(localUrl
                     ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
                     ,data=jsonData \
                 )
             except requests.exceptions.RequestException as e:
-                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+' :'+str(e))
+                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+':'+str(e))
             else:
-                if response.status_code != 200:
+                if response.status_code != self.htppStatusOk:
                     Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
 
     # Dumps configuration to log
