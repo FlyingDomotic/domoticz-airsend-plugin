@@ -186,3 +186,13 @@ Voici la liste des unités AirSend et des commandes supportées :
 | 4097 | Interrupteur        | On/Off                |
 | 4098 | Volet               | Up/Down/Stop          |
 | 4099 | Volet avec position | Up/Down/Stop/Position |
+
+## Debuging plug-in / Déverminage du plug-in
+
+If something don't work as expected/required, it could be a good idea to modify debug log level from `Normal` to `Extra verbose` before restarting plug-in (to restart plug-in, either restart Domoticz or click on `Modify` when plug-in is selected in `Hardware` tab of `Configuration`).
+
+In addition, an extract of web service log (AirSendWebService.log in web service folder) may help.
+
+Si quelque chose ne fonctionne pas comme documenté/souhaité, il peut être habile de passer le niveau de log du plug-in de `Normal` à `Extra verbose` avant de relancer le plug-in (pour relancer le plug-in, vous pouvez soit relancer Domoticz, soit cliquer sur "Modifier" lorsque le plug-in est sélectionné dans l'onglet `Matériel` du menu `Configuration`.
+
+De plus, un extrait du log du web service (AirSendWebService.log dans le répertoire du web service) peut aider.
