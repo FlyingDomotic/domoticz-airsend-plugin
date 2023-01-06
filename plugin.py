@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.9">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.10">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -45,9 +45,9 @@ class BasePlugin:
 
     # AirSend remote types
     airSendRemoteTypeButton = 4096
-    airSendRemoteTypeCover = 4097
-    airSendRemoteTypeCoverPosition = 4098
-    airSendRemoteTypeSwitch = 4099
+    airSendRemoteTypeSwitch = 4097
+    airSendRemoteTypeCover = 4098
+    airSendRemoteTypeCoverPosition = 4099
     # AirSend event types
     airSendEventTypePending = 0
     airSendEventTypeSent = 1
