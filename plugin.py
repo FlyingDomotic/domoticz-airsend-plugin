@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.10">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.11">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -414,15 +414,16 @@ class BasePlugin:
         if not deviceParams:
             Domoticz.Error("Can't find "+device.DeviceID+' for '+device.Name+' in '+str(self.yamlDevices))
             return
-        #D# # Get device current values
-        #D# nValue = device.nValue
-        #D# sValue = device.sValue
+        # Get device current values
+        nValue = device.nValue
+        sValue = device.sValue
         airSendType = -1
         airSendValue = -1
         airSendDeviceType = self.getValue(deviceParams, 'type')
         # Update device depending on command
         if Command == 'Off':
-            #D# nValue = nValueOff
+            nValue = self.nValueOff
+            sValue = self.sValueOff
             if airSendDeviceType == self.airSendRemoteTypeSwitch:
                 airSendType = self.airSendNoteTypeState
                 airSendValue = self.airSendNoteValueOff   # Off
@@ -435,7 +436,8 @@ class BasePlugin:
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'On':
-            #D# nValue = nValueOn
+            nValue = self.nValueOn
+            sValue = self.sValueOn
             if airSendDeviceType == self.airSendRemoteTypeSwitch:
                 airSendType = self.airSendNoteTypeState
                 airSendValue = self.airSendNoteValueOn   # On
@@ -448,14 +450,15 @@ class BasePlugin:
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Stop':
-            #D# nValue = nValueStop
+            nValue = self.nValueStop
             if airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
                 airSendType = self.airSendNoteTypeState
                 airSendValue = self.airSendNoteValueStop   # Stop
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Open':
-            #D# nValue = nValueOpen
+            nValue = self.nValueOpen
+            sValue = self.sValueOpen
             if airSendDeviceType == self.airSendRemoteTypeSwitch:
                 airSendType = self.airSendNoteTypeState
                 airSendValue = self.airSendNoteValueOn   # On
@@ -465,7 +468,8 @@ class BasePlugin:
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Close':
-            #D# nValue = nValueClose
+            nValue = self.nValueClose
+            sValue = self.sValueClose
             if airSendDeviceType == self.airSendRemoteTypeSwitch:
                 airSendType = self.airSendNoteTypeState
                 airSendValue = self.airSendNoteValueOff   # Off
@@ -475,8 +479,8 @@ class BasePlugin:
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Set Level':
-            #D# nValue = nValueLevel
-            #D# sValue = str(Level)
+            nValue = self.nValueLevel
+            sValue = str(Level)
             if airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
                 airSendType = self.airSendNoteTypeLevel
                 airSendValue = Level
@@ -493,6 +497,7 @@ class BasePlugin:
                     ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
                     ,data=jsonData \
                 )
+                device.Update(nValue=nValue, sValue = sValue)
             except requests.exceptions.RequestException as e:
                 Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+':'+str(e))
             else:
