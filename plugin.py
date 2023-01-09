@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.11">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.12">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -468,8 +468,8 @@ class BasePlugin:
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Close':
-            nValue = self.nValueClose
-            sValue = self.sValueClose
+            nValue = self.nValueClosed
+            sValue = self.sValueClosed
             if airSendDeviceType == self.airSendRemoteTypeSwitch:
                 airSendType = self.airSendNoteTypeState
                 airSendValue = self.airSendNoteValueOff   # Off
@@ -551,8 +551,6 @@ class BasePlugin:
             Domoticz.Debug("Device "+device.Name+', method '+str(eventNoteMethod)+', type '+str(eventNoteType)+', value '+str(eventValue))
             # Change Domoticz device depending on AirSend device type
             airSendDeviceType = self.getValue(deviceParams, 'type')
-            #D# nValue = None
-            #D# sValue = None
             if airSendDeviceType == self.airSendRemoteTypeCover or airSendDeviceType == self.airSendRemoteTypeCoverPosition:
                 if eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueUp:   # Up
                     device.Update(nValue=self.nValueOpen, sValue = self.sValueOpen)
