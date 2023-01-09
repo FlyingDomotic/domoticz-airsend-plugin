@@ -164,8 +164,35 @@ Donne l'adresse du serveur web local à utiliser pour accéder au rappel. Peut c
 {"Additional remote": {"remoteId": 11111, "remoteSource": 22222, "deviceId": 33333, "deviceSource": 44444}
 ```
 
-In case you have multiple remote commands for the same device (including AirSend itself in case of protocol with sequence numbers), you can specify here additiona remote id and source. Remote represents the addition remote, device is AirSend device in configuration.yaml. 'remoteId' and 'deviceId' should probably be the same. Add one line per remote.
-Si vous avez plusieurs télécommandes pour une même unité (inclant AirSend lui-même dans le cas de protocoles avec compteurs), vous pouvez donner ici l'id et la source de la télécommande additionnelle. Remote correspond à la télécommande additionnelle, device est l'unité dans le fichier configuration.yaml. 'remoteId' et 'deviceId' devrait probablement être identiques. Ajouter une ligne par télécommande additionnelle.
+Should you listen to one protocol and have multiple remote commands for the same device (including AirSend itself in case of protocol with sequence numbers), you can specify here additiona remote id and source. Remote represents the addition remote, device is AirSend device in configuration.yaml. 'remoteId' and 'deviceId' should probably be the same. Add one line per remote.
+
+Si vous écoutez un protocole et avez plusieurs télécommandes pour une même unité (inclant AirSend lui-même dans le cas de protocoles avec compteurs), vous pouvez donner ici l'id et la source de la télécommande additionnelle. Remote correspond à la télécommande additionnelle, device est l'unité dans le fichier configuration.yaml. 'remoteId' et 'deviceId' devrait probablement être identiques. Ajouter une ligne par télécommande additionnelle.
+
+## Architecture details / Détails sur l'architecture
+
+As per AirSend's documentation, AirSend box is able to do two things:
+1. Send command "blindly" in the air,
+2. Optionnaly listen to one (and only one) protocol. This protocol could be `0`, with a special meaning of `generic 433 protocol`.
+
+Should you wish only blindly send commands, don't specify `protoclToListen` in AirSend.json file, and that's it. `webServerUrl`, `webServerFolder` and `mapping` are useless, and no callback willl be used. Note in that case that Domoticz devices would normally be push button, as no feedback is received, nor remote device frames received.
+
+If you enable one protocol listening, then `webServerFolder` and `webServerUrl` are required, to determine where to copy callback in the right folder and to call it.
+
+Callback will be called by AirSend web service, and captured frame sent to Domoticz, which in turn will send it to the AirSend plug-in.
+
+Captured frames will depend on received, remote and AirSend box configuration. This could be remote key press, received order confirmation and/or remote status. Due to diversity of devices, o²nly tests could determine exactly what kind of frames can be received. In this case, having full debug and webservice log may help (see under).
+
+Selon la documentation AirSend, le boitier AirSend est capable de faire 2 choses :
+1. Envoyer à l'aveugle des commandes radio
+2. Facultativement écouter un protocole (et seulement un). Ce protocole peut être le protpcole `0`, nommé `protocole 433 générique`.
+
+Si vous ne souhaitez qu'envoyer des commandes à l'aveugle, ne spécifiez pas `protocolToListen` dans le fichier Airsend.json, et voilà ! `webServerUrl`, `webServerFolder` et `mapping` sont inutiles, et on n'utilisera pas de callback. Noter que dans ce cas, les dispositifs Domoticz devrait être du type bouton poussoir, car aucune retour ni message de télécommande n'est reçu.
+
+Si vous définissez un protocole à écouter, `webServerFolder` et `webServerUrl` sont requis pour déterminer où copier le callback et comment l'apppeller.
+
+Le callback sera utilisé par le web service AirSend pour envoyer les trames reçues à Domoticz, qui les enverra au plug-in AirSend.
+
+LEs trames capturées dépendent du récepteur, de la télécommande et du paramétrage du boitier AirSend. Celà peut être l'appui sur une télécommande, la confirmation d'un ordre ou un état distant. Etant donné la diversité des appareils, seuls des tests permettent de savoir avec précision les trames qui sont reçues. Avoir défini une trace complète et avoir accès au log du web service peuvent aider (voir plus bas).
 
 ## Supported AirSend device type and command / Types d'unités AisSend et commandes supportées
 
