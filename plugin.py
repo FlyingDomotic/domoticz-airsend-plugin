@@ -94,8 +94,8 @@ class BasePlugin:
     sValueOpen = sValueOff
     nValueOn = 1
     sValueOn = '100'
-    nValueClosed = nValueOn
-    sValueClosed = sValueOn
+    nValueClose = nValueOn
+    sValueClose = sValueOn
     nValueLevel = 2
     nValueUserPosition = nValueLevel
     sValueUserPosition = '50'
@@ -468,8 +468,8 @@ class BasePlugin:
             else:
                 Domoticz.Error("Don't know how to execute "+Command+" for type " + str(airSendDeviceType)+" on "+device.Name)
         elif Command == 'Close':
-            nValue = self.nValueClosed
-            sValue = self.sValueClosed
+            nValue = self.nValueClose
+            sValue = self.sValueClose
             if airSendDeviceType == self.airSendRemoteTypeSwitch:
                 airSendType = self.airSendNoteTypeState
                 airSendValue = self.airSendNoteValueOff   # Off
@@ -557,7 +557,7 @@ class BasePlugin:
                 elif eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueUserposition:   # User position
                     device.Update(nValue=self.nValueUserPosition, sValue = self.sValueUserPosition)
                 elif eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueDown:   # Down
-                    device.Update(nValue=self.nValueClosed, sValue = self.sValueClosed)
+                    device.Update(nValue=self.nValueClose, sValue = self.sValueClose)
                 elif eventNoteType == self.airSendNoteTypeState and eventValue == self.airSendNoteValueStop:   # Stop
                     device.Update(nValue=self.nValueStop, sValue = device.sValue)
                 elif eventNoteType == self.airSendNoteTypeLevel:                       # Level in event value
