@@ -78,6 +78,10 @@ Note: if you did any changes to plugin files and `git pull` command doesn't work
 ```
 git stash
 ```
+or
+```
+git checkout <modified file>
+```
 
 1. Allez dans le répertoire du plugin et charger la nouvelle version :
 ```
@@ -90,7 +94,10 @@ Note: si vous avez fait des modifs dans les fichiers du plugin et que la command
 ```
 git stash
 ```
-
+ou
+```
+git checkout <fichier modifié>
+```
 ## Configuration
 
 Plugin uses standard AirSend configuration export file (configuration.yaml) to get description of all AirSend devices. You should copy it in AirSend's plugin folder.
