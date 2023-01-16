@@ -1,6 +1,6 @@
-#           AirSend plugin
+214#           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.14">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.15">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -208,7 +208,16 @@ class BasePlugin:
         if self.debugging == "Debug":
             Domoticz.Debugging(2+4+8)
             self.dumpConfigToLog()
-
+        domVersion = Parameters["DomoticzVersion"]
+        # Open and close are reversed since V2022.2
+        if domVersion[:2] == "20" and domVersion >= "2022.2":
+            Domoticz.Log("Version "+domVersion+" is greater or equal to 2022.2")
+            self.nValueOpen = self.nValueOn
+            self.sValueOpen = self.sValueOn
+            self.nValueClose = self.nValueOff
+            self.sValueClose = self.sValueOff
+        else:
+            Domoticz.Log("Version "+domVersion+" is lower than 2022.2")
         # Load JSON mapping file
         jsonFile = Parameters['HomeFolder'] + Parameters["Mode1"]
         jsonData = None
