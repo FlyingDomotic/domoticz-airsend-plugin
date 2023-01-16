@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.13">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.14">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -489,8 +489,8 @@ class BasePlugin:
         else:
             Domoticz.Error('Command: "' + str(Command) + '" not supported yet for ' + device.Name+'. Please ask for support.')
         if airSendType != -1:
-            Domoticz.Log('Sending notes type='+str(airSendType)+', value='+str(airSendValue)+ ' to channel Id='+elements[0]+', source='+elements[1])
             elements = device.DeviceID.split('/')
+            Domoticz.Log('Sending notes type='+str(airSendType)+', value='+str(airSendValue)+ ' to channel Id='+elements[0]+', source='+elements[1])
             jsonData = '{"wait": true, "channel": {"id":"'+elements[0]+'","source":"'+elements[1]+'"}, "thingnotes":{"notes":[{"method":1,"type":'+str(airSendType)+',"value":'+str(airSendValue)+'}]}}'
             localUrl = self.webServiceUrl+'airsend/transfer'
             try:
