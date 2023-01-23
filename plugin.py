@@ -1,6 +1,6 @@
-214#           AirSend plugin
+#           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.15">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.16">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -23,6 +23,7 @@ import os
 import json
 import yaml
 import requests
+import traceback
 
 # Implements plug-in as class
 class BasePlugin:
@@ -222,7 +223,11 @@ class BasePlugin:
         jsonFile = Parameters['HomeFolder'] + Parameters["Mode1"]
         jsonData = None
         with open(jsonFile, encoding = 'UTF-8') as configStream:
-            jsonData = json.load(configStream)
+            try:
+                jsonData = json.load(configStream)
+            except Exception as e:
+                Domoticz.Error(f"Error loading {jsonFile} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+                return
         # Read parameters
         self.domoticzRootUrl = self.getPathValue(jsonData, 'parameters/domoticzRootUrl')
         if not self.domoticzRootUrl:
@@ -355,15 +360,15 @@ class BasePlugin:
             try:
                 with open(phpFile, 'wt') as f:
                     f.write(templateData)
-            except:
-                Domoticz.Error("Can't write "+phpFile)
+            except Exception as e:
+                Domoticz.Error(f"Can't write {phpFile} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
                 return
             Domoticz.Debug("Wrote "+phpFile)
             # Set callback protection
             try:
                 os.chmod(phpFile, 0o644)
-            except:
-                Domoticz.Error("Can't protect  "+phpFile)
+            except Exception as e:
+                Domoticz.Error(f"Can't protect {phpFile} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             # Set the callback
             if self.protocolToListen:
                 callbackProtocol = str(self.protocolToListen)
@@ -377,7 +382,7 @@ class BasePlugin:
                         ,data=jsonData \
                     )
                 except requests.exceptions.RequestException as e:
-                    Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+': '+str(e))
+                    Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
                 else:
                     if response.status_code != self.htppStatusOk:
                         Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
@@ -392,24 +397,27 @@ class BasePlugin:
     def onStop(self):
         self.configOk =  False
         # remove the callback
-        Domoticz.Debug('Removing callback')
-        localUrl = self.webServiceUrl+'airsend/close'
-        try:
-            response = requests.get(localUrl \
-                ,headers={'Accept': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-            )
-        except requests.exceptions.RequestException as e:
-            Domoticz.Error('Error getting '+localUrl+': '+str(e))
-        else:
-            if response.status_code != self.htppStatusOk:
-                Domoticz.Error('Error '+str(response.status_code)+' in GET '+response.url)
-        # Delete PHP callback file
-        phpFile = self.webServerFolder+self.airSendCallbackName
-        Domoticz.Log("Removing "+phpFile)
-        try:
-            os.remove(phpFile)
-        except:
-            pass
+        if self.webServiceUrl:
+            Domoticz.Debug('Removing callback')
+            localUrl = self.webServiceUrl+'airsend/close'
+            try:
+                response = requests.get(localUrl \
+                    ,headers={'Accept': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
+                )
+            except requests.exceptions.RequestException as e:
+                Domoticz.Error(f"Error getting {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+            else:
+                if response.status_code != self.htppStatusOk:
+                    Domoticz.Error('Error '+str(response.status_code)+' in GET '+response.url)
+
+        if self.webServerFolder and self.airSendCallbackName:
+            # Delete PHP callback file
+            phpFile = self.webServerFolder+self.airSendCallbackName
+            Domoticz.Log("Removing "+phpFile)
+            try:
+                os.remove(phpFile)
+            except:
+                pass
 
     # Called when a command is sent to one device linked to this plug-in
     def onCommand(self, Unit, Command, Level, sColor):
@@ -509,7 +517,7 @@ class BasePlugin:
                 )
                 device.Update(nValue=nValue, sValue = sValue)
             except requests.exceptions.RequestException as e:
-                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+':'+str(e))
+                Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             else:
                 if response.status_code != self.htppStatusOk:
                     Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
@@ -530,7 +538,11 @@ class BasePlugin:
             # This is an update comming from AirSend device through callback
             event = device.sValue
             Domoticz.Log('Received event '+event)
-            jsonEvent = json.loads(event)
+            try:
+                jsonEvent = json.loads(event)
+            except Exception as e:
+                Domoticz.Error(f"Error decoding {event} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+                return
             eventType = str(self.getValue(jsonEvent, 'type'))
             # As of now, work only for event type 3 (GOT)
             if eventType != str(self.airSendEventTypeGot):
@@ -623,7 +635,7 @@ class BasePlugin:
                     ,data=jsonData \
                 )
             except requests.exceptions.RequestException as e:
-                Domoticz.Error('Error posting '+str(jsonData)+' to '+localUrl+':'+str(e))
+                Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             else:
                 if response.status_code != self.htppStatusOk:
                     Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
