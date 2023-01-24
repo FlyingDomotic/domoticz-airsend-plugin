@@ -117,7 +117,7 @@ De plus, il utilise un fichier de configuration externe au format JSON pour déf
 		"authorization" : "sp://xxxxxxxxxxxxxxxx@xxx.xxx.xxx.xxx?gw=0"
 	},
 	"mapping": [
-		{"Additional remote": {"remoteId": 11111, "remoteSource": 22222, "deviceId": 33333, "deviceSource": 44444},
+		{"Additional remote": {"remoteId": 11111, "remoteSource": 22222, "deviceId": 33333, "deviceSource": 44444}},
 	]
 }
 ```
@@ -168,10 +168,10 @@ Specify local web server address to use to call callback. Can contain sub-folder
 Donne l'adresse du serveur web local à utiliser pour accéder au rappel. Peut contenir un sous-répertoire si le fichier de rappel n'est pas à la racine. Requis uniquement si 'protocolToListen' est donné.
 
 ```ts
-{"Additional remote": {"remoteId": 11111, "remoteSource": 22222, "deviceId": 33333, "deviceSource": 44444}
+{"Additional remote": {"remoteId": 11111, "remoteSource": 22222, "deviceId": 33333, "deviceSource": 44444}}
 ```
 
-Should you listen to one protocol and have multiple remote commands for the same device (including AirSend itself in case of protocol with sequence numbers), you can specify here additiona remote id and source. Remote represents the addition remote, device is AirSend device in configuration.yaml. 'remoteId' and 'deviceId' should probably be the same. Add one line per remote.
+Should you listen to one protocol and have multiple remote commands for the same device (including AirSend itself in case of protocol with sequence numbers), you can specify here additiona remote id and source. Remote represents the additional remote, device is AirSend device in configuration.yaml. 'remoteId' and 'deviceId' should probably be the same. Add one line per remote.
 
 Si vous écoutez un protocole et avez plusieurs télécommandes pour une même unité (inclant AirSend lui-même dans le cas de protocoles avec compteurs), vous pouvez donner ici l'id et la source de la télécommande additionnelle. Remote correspond à la télécommande additionnelle, device est l'unité dans le fichier configuration.yaml. 'remoteId' et 'deviceId' devrait probablement être identiques. Ajouter une ligne par télécommande additionnelle.
 
