@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.17">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.18">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -315,19 +315,19 @@ class BasePlugin:
                 mappingData = mapping[mappingKey]
                 remoteId = self.getValue(mappingData, 'remoteId')
                 if not remoteId:
-                    Domoticz.Error("Can't find 'remoteId' in mapping "+mappingKey+' '+mappingData)
+                    Domoticz.Error("Can't find 'remoteId' in mapping "+mappingKey+' '+str(mappingData))
                     return
                 remoteSource = self.getValue(mappingData, 'remoteSource')
                 if not remoteSource:
-                    Domoticz.Error("Can't find 'remoteSource' in mapping "+mappingKey+' '+mappingData)
+                    Domoticz.Error("Can't find 'remoteSource' in mapping "+mappingKey+' '+str(mappingData))
                     return
                 deviceId = self.getValue(mappingData, 'deviceId')
                 if not deviceId:
-                    Domoticz.Error("Can't find 'deviceId' in mapping "+mappingKey+' '+mappingData)
+                    Domoticz.Error("Can't find 'deviceId' in mapping "+mappingKey+' '+str(mappingData))
                     return
                 deviceSource = self.getValue(mappingData, 'deviceSource')
                 if not deviceSource:
-                    Domoticz.Error("Can't find 'deviceSource' in mapping "+mappingKey+' '+mappingData)
+                    Domoticz.Error("Can't find 'deviceSource' in mapping "+mappingKey+' '+str(mappingData))
                     return
             # Add mapping to dictionary (remote key = device key)
             remoteKey = str(remoteId)+'/'+str(remoteSource)
@@ -527,6 +527,8 @@ class BasePlugin:
         Domoticz.Log("onDeviceAdded " + self.deviceStr(Unit))
 
     # Called when a device managed by this plug-in is (externally) modified
+    # This is the case when callback is called by AirSend web service
+    # One message will be received for each event (they're split by callback)
     def onDeviceModified(self, Unit):
         Domoticz.Log("onDeviceModified " + self.deviceStr(Unit))
         # Exit if config not ok
