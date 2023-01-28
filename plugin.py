@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.18">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="0.0.19">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -142,7 +142,7 @@ class BasePlugin:
             with open(file, encoding = 'UTF-8') as f:
                 return yaml.safe_load(f.read())
         else:
-            Domoticz.Error("Can't find configuration file " + file)
+            Domoticz.Error("Can't find configuration file " + str(file))
             return {}
 
     # Find a device by ID in devices table
@@ -209,7 +209,7 @@ class BasePlugin:
         if self.debugging == "Debug":
             Domoticz.Debugging(2+4+8)
             self.dumpConfigToLog()
-        domVersion = Parameters["DomoticzVersion"]
+        domVersion = str(Parameters["DomoticzVersion"])
         # Open and close are reversed since V2022.2
         if domVersion[:2] == "20" and domVersion >= "2022.2":
             Domoticz.Log("Version "+domVersion+" is greater or equal to 2022.2")
@@ -220,7 +220,7 @@ class BasePlugin:
         else:
             Domoticz.Log("Version "+domVersion+" is lower than 2022.2")
         # Load JSON mapping file
-        jsonFile = Parameters['HomeFolder'] + Parameters["Mode1"]
+        jsonFile = str(Parameters['HomeFolder'] + Parameters["Mode1"])
         jsonData = None
         with open(jsonFile, encoding = 'UTF-8') as configStream:
             try:
@@ -293,16 +293,16 @@ class BasePlugin:
             deviceType = self.getValue(deviceParams, 'type')
             if self.getDevice(deviceKey) == None:
                 if  deviceType == self.airSendRemoteTypeButton:   # Button
-                    Domoticz.Log("Creating button " + airSendDevice)
+                    Domoticz.Log("Creating button " + str(airSendDevice))
                     Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_PushOn, DeviceID=deviceKey, Used=True).Create()
                 elif deviceType == self.airSendRemoteTypeCover:  # Cover
-                    Domoticz.Log("Creating cover " + airSendDevice)
+                    Domoticz.Log("Creating cover " + str(airSendDevice))
                     Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_Blinds, DeviceID=deviceKey, Used=True).Create()
                 elif deviceType == self.airSendRemoteTypeCoverPosition:  # Cover with position
-                    Domoticz.Log("Creating cover with position " + airSendDevice)
+                    Domoticz.Log("Creating cover with position " + str(airSendDevice))
                     Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_BlindsPosition, DeviceID=deviceKey, Used=True).Create()
                 elif deviceType == self.airSendRemoteTypeSwitch:  # Switch
-                    Domoticz.Log("Creating switch " + airSendDevice)
+                    Domoticz.Log("Creating switch " + str(airSendDevice))
                     Domoticz.Device(Name=airSendDevice, Unit=self.getNextDeviceId(), Type=self.pTypeGeneralSwitch, Subtype=self.sSwitchGeneralSwitch, Switchtype=self.STYPE_OnOff, DeviceID=deviceKey, Used=True).Create()
                 else:
                     Domoticz.Error("Don't know what "+str(deviceType)+" type could be...")
@@ -315,19 +315,19 @@ class BasePlugin:
                 mappingData = mapping[mappingKey]
                 remoteId = self.getValue(mappingData, 'remoteId')
                 if not remoteId:
-                    Domoticz.Error("Can't find 'remoteId' in mapping "+mappingKey+' '+str(mappingData))
+                    Domoticz.Error("Can't find 'remoteId' in mapping "+str(mappingKey)+' '+str(mappingData))
                     return
                 remoteSource = self.getValue(mappingData, 'remoteSource')
                 if not remoteSource:
-                    Domoticz.Error("Can't find 'remoteSource' in mapping "+mappingKey+' '+str(mappingData))
+                    Domoticz.Error("Can't find 'remoteSource' in mapping "+str(mappingKey)+' '+str(mappingData))
                     return
                 deviceId = self.getValue(mappingData, 'deviceId')
                 if not deviceId:
-                    Domoticz.Error("Can't find 'deviceId' in mapping "+mappingKey+' '+str(mappingData))
+                    Domoticz.Error("Can't find 'deviceId' in mapping "+str(mappingKey)+' '+str(mappingData))
                     return
                 deviceSource = self.getValue(mappingData, 'deviceSource')
                 if not deviceSource:
-                    Domoticz.Error("Can't find 'deviceSource' in mapping "+mappingKey+' '+str(mappingData))
+                    Domoticz.Error("Can't find 'deviceSource' in mapping "+str(mappingKey)+' '+str(mappingData))
                     return
             # Add mapping to dictionary (remote key = device key)
             remoteKey = str(remoteId)+'/'+str(remoteSource)
@@ -337,13 +337,13 @@ class BasePlugin:
                 mappingName = device.Name
             else:
                 mappingName = "** unkwnown device **"
-            Domoticz.Debug('Mapping '+mappingKey+' ('+remoteKey+') to '+mappingName+' ('+deviceKey+')')
+            Domoticz.Debug('Mapping '+str(mappingKey)+' ('+str(remoteKey)+') to '+str(mappingName)+' ('+str(deviceKey)+')')
             self.mappings[remoteKey] = deviceKey
 
         # Should set a callback to listen a protocol to?
         if self.protocolToListen:
             # Create callback file from template
-            templateFile = Parameters['HomeFolder'] + 'template.php'
+            templateFile = str(Parameters['HomeFolder'] + 'template.php')
             if os.path.exists(templateFile):
                 with open(templateFile, 'rt') as f:
                     templateData = f.read()
@@ -356,7 +356,7 @@ class BasePlugin:
             templateData = templateData.replace("##IDX##", str(self.eventDataIdx))
 
             # Write callback file
-            phpFile = self.webServerFolder+self.airSendCallbackName
+            phpFile = str(self.webServerFolder+self.airSendCallbackName)
             try:
                 with open(phpFile, 'wt') as f:
                     f.write(templateData)
@@ -372,10 +372,10 @@ class BasePlugin:
             # Set the callback
             if self.protocolToListen:
                 callbackProtocol = str(self.protocolToListen)
-                callbackSpecs = self.webServerUrl+self.airSendCallbackName
+                callbackSpecs = str(self.webServerUrl+self.airSendCallbackName)
                 Domoticz.Debug('Binding prototol '+callbackProtocol+' to '+callbackSpecs)
                 jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-                localUrl = self.webServiceUrl+'airsend/bind'
+                localUrl = str(self.webServiceUrl+'airsend/bind')
                 try:
                     response = requests.post(url=localUrl \
                         ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
@@ -385,9 +385,9 @@ class BasePlugin:
                     Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
                 else:
                     if response.status_code != self.htppStatusOk:
-                        Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+                        Domoticz.Error('Error '+str(response.status_code)+' in POST '+str(response.url)+', data '+str(jsonData))
                     else:
-                        Domoticz.Log(jsonData+ ' returned Ok')
+                        Domoticz.Log(str(jsonData)+ ' returned Ok')
 
         # Enable heartbeat
         Domoticz.Heartbeat(60)
@@ -399,7 +399,7 @@ class BasePlugin:
         # remove the callback
         if self.webServiceUrl:
             Domoticz.Debug('Removing callback')
-            localUrl = self.webServiceUrl+'airsend/close'
+            localUrl = str(self.webServiceUrl+'airsend/close')
             try:
                 response = requests.get(localUrl \
                     ,headers={'Accept': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
@@ -408,11 +408,11 @@ class BasePlugin:
                 Domoticz.Error(f"Error getting {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             else:
                 if response.status_code != self.htppStatusOk:
-                    Domoticz.Error('Error '+str(response.status_code)+' in GET '+response.url)
+                    Domoticz.Error('Error '+str(response.status_code)+' in GET '+str(response.url))
 
         if self.webServerFolder and self.airSendCallbackName:
             # Delete PHP callback file
-            phpFile = self.webServerFolder+self.airSendCallbackName
+            phpFile = str(self.webServerFolder+self.airSendCallbackName)
             Domoticz.Log("Removing "+phpFile)
             try:
                 os.remove(phpFile)
@@ -509,7 +509,7 @@ class BasePlugin:
             elements = device.DeviceID.split('/')
             Domoticz.Log('Sending notes type='+str(airSendType)+', value='+str(airSendValue)+ ' to channel Id='+elements[0]+', source='+elements[1])
             jsonData = '{"wait": true, "channel": {"id":"'+elements[0]+'","source":"'+elements[1]+'"}, "thingnotes":{"notes":[{"method":1,"type":'+str(airSendType)+',"value":'+str(airSendValue)+'}]}}'
-            localUrl = self.webServiceUrl+'airsend/transfer'
+            localUrl = str(self.webServiceUrl+'airsend/transfer')
             try:
                 response = requests.post(url=localUrl
                     ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
@@ -520,7 +520,7 @@ class BasePlugin:
                 Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             else:
                 if response.status_code != self.htppStatusOk:
-                    Domoticz.Error('Error '+str(response.status_code)+' in POST '+response.url+', data '+str(jsonData))
+                    Domoticz.Error('Error '+str(response.status_code)+' in POST '+str(response.url)+', data '+str(jsonData))
 
     # Called when a device is added to this plug-in
     def onDeviceAdded(self, Unit):
@@ -539,7 +539,7 @@ class BasePlugin:
         if device.DeviceID == self.eventDataKey:
             # This is an update comming from AirSend device through callback
             event = device.sValue
-            Domoticz.Log('Received event '+event)
+            Domoticz.Log('Received event '+str(event))
             try:
                 jsonEvent = json.loads(event)
             except Exception as e:
@@ -628,9 +628,9 @@ class BasePlugin:
         # Set the callback
         if self.protocolToListen:
             callbackProtocol = str(self.protocolToListen)
-            callbackSpecs = self.webServerUrl+self.airSendCallbackName
+            callbackSpecs = str(self.webServerUrl+self.airSendCallbackName)
             jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-            localUrl = self.webServiceUrl+'airsend/bind'
+            localUrl = str(self.webServiceUrl+'airsend/bind')
             try:
                 response = requests.post(localUrl
                     ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
