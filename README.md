@@ -24,12 +24,12 @@ Ce plugin est en phase de développement initial, et n'a été que partiellement
 
 ## Prerequisites / Prérequis
 
-- Domoticz 2020.0 or higher (but lower version could also work).
+- Domoticz 2020.2 or higher (but lower version could also work).
 - Make sure that your Domoticz supports Python plugins (https://www.domoticz.com/wiki/Using_Python_plugins).
 - Make sure AirSend Web Service is installed and running on machine, and has been paired with devices you want to control.
 - Should you whish to listen to some protocol, you need to have a local web server with PHP enabled.
 
-- Domoticz 2022.0 ou supérieurs (les versions précédentes peuvent aussi fonctionner).
+- Domoticz 2020.2 ou supérieurs (les versions précédentes peuvent aussi fonctionner).
 - Vérifiez que votre version de Domoticz supporte les plugins Python (https://www.domoticz.com/wiki/Using_Python_plugins).
 - Assurez-vous que le Web service AirSend est installé et actif sur la machine, et qu'il est appairé avec les unités que vous souhaitez contrôler.
 - Si vous souhaitez écouter un protocole, vous devez en plus avoir un werveur web local avec php actif.
@@ -174,6 +174,78 @@ Donne l'adresse du serveur web local à utiliser pour accéder au rappel. Peut c
 Should you listen to one protocol and have multiple remote commands for the same device (including AirSend itself in case of protocol with sequence numbers), you can specify here additiona remote id and source. Remote represents the additional remote, device is AirSend device in configuration.yaml. 'remoteId' and 'deviceId' should probably be the same. Add one line per remote.
 
 Si vous écoutez un protocole et avez plusieurs télécommandes pour une même unité (inclant AirSend lui-même dans le cas de protocoles avec compteurs), vous pouvez donner ici l'id et la source de la télécommande additionnelle. Remote correspond à la télécommande additionnelle, device est l'unité dans le fichier configuration.yaml. 'remoteId' et 'deviceId' devrait probablement être identiques. Ajouter une ligne par télécommande additionnelle.
+
+## Manual definition of devices / Définition manuelle des télécommandes
+
+For devices normally supported by AirSend, the previous setup is sufficient.
+
+However, should you want to define remotes with non standard Domoticz's device setting, or use non standard DevMel's commands (including those created by learning radio codes), `settings` is made for you. Again, for standard use, this is not needed.
+
+```ts
+{
+	"parameters": {
+		"domoticzRootUrl": "http://127.0.0.1:8080/",
+		"yamlConfigurationFile": "configuration.yaml",
+		"webServerFolder": "/var/www/html/",
+		"webServerUrl": "http://127.0.0.1/",
+		"webServiceUrl": "http://127.0.0.1:33863/",
+		"protocolToListen" : 12345,
+		"authorization" : "sp://xxxxxxxxxxxxxxxx@xxx.xxx.xxx.xxx?gw=0"
+	},
+	"mapping": [
+		{"Additional remote": {"remoteId": 11111, "remoteSource": 22222, "deviceId": 33333, "deviceSource": 44444}}
+	],
+	"settings": [
+		{"My remote": {
+				"deviceId": 12345, "deviceSource": 67890,
+				"type": 244, "subtype": 73, "switchtype": 21,
+				"options": {"SelectorStyle":"1", "LevelOffHidden": "true", "LevelNames":"Off|Auto|Forced"},
+				"commands": [
+					{"Open":{"method":1, "type":0, "value": 22, "nValue": 0, "sValue": "100"}},
+					{"Close":{"method":1, "type":0, "value": 21, "nValue": 1, "sValue": "0"}},
+					{"Stop":{"method":1, "type":0, "value": 17, "nValue": 17}}
+				]
+			},
+		}
+	]
+}
+```
+
+You could include in `settings` as many remotes you want, with the following rules:
+
+Add one line per remote with non standard settings. Remotes with standard settings will be defined automatically and don't need to be specified here.
+
+It a good idea to set `My remote` the same name you gave in AirSend device configuration, even if not required.
+
+Should you already define a standard remote with the same name, it's a good idea to delete it first in Domoticz devices list.
+
+`deviceId` and `deviceSource` should be those specified in configuration.yaml file.
+
+The first part in `settings` is Domoticz device definition: `type`, `subtype`, `switchtype` and `options` contains the type/subtype/switchtype/options values of device being created. Valid values can be found at (https://www.domoticz.com/wiki/Developing_a_Python_plugin#Available_Device_Types). If `type` is specified, then `subtype` should be, but `switchtype` and/or `options` are optional. If `type`is not defined, then a standard device will be created.
+
+The second part in `settings` is command definition: `commands` is used to specify Domoticz/DevMel commands association, one line per command. Each command has a name as first parameter, which is Domoticz's command name. Currently, `On`, `Off`, `Open`, `Close`and `Stop` are supported. Unknown names are authorized, but Domoticz related actions won't be forwarded to AirSend (however, feedback from AirSend to Domoticz will be done, allowing devices's nValue and/or sValue update).
+
+`method`, `type` and `value` are the ones found in DevMel's event message (the 3 are required) while `nValue` and/or `sValue` are Domoticz's device values (only one required, both allowed).
+
+You may want defining only `type` or `commands` or both (standard values are used for non specified parts). You may also specify none of them, even if a bit useless!
+
+Vous pouvez include dans `settings` autant de élécommandes que vous souhaitez, en respectant les règles suivantes :
+
+Ajoutez une ligne par télécommande avec des caractéristiques non standard. Les télécommandes classiques seront définies automatiquement et n'ont pas besoin d'être détaillées ici.
+
+Il peut être habile de définir `My remote` à la valeur que vous avez donén dans la configuraion AirSend, même si ce n'est pas oligatoire.
+
+Si vous avez défini une télécommande standard avec le même nom, c'est une bonne idée que de la détruie de la liste des dispositifs Domoticz d'abord.
+
+`deviceId` et `deviceSource` doivent avoir les valeurs définies dans le fichier configuration.yaml.
+
+La première partie de `settings` est la définition du dispositif Domoticz : `type`, `subtype`, `switchtype` et `options` contiennent respectivement le type, sous type, type de switch et options du dispositif à créer. Les valeurs autorisées se trouvent à (https://www.domoticz.com/wiki/Developing_a_Python_plugin#Available_Device_Types). Si `type` est spécifié, alors`subtype` doit l'être, mais `switchtype` et/ou `options` sont optionels. Si `type`n'est pas défini, un dispositif standard sera crée en fonction du type de télécommande.
+
+La seconde partie de `settings` est la définition de la commande : `commands` est utilisé pour définir l'association des commandes entre Domoticz et DevMel, une ligne par commande. Le premier paramètre de chaque commande est son nom. Actuellement, `On`, `Off`, `Open`, `Close` et `Stop` sont supportés. D'autres noms sont admis, mais les actions Domoticz ne seront pas envoyées à AirSend (par contre, les retours d'AirSend vers Domoticz seront réalisés, permettant de mettre à jour les valeurs nValue et/ou sValue du dispositif).
+
+`method`, `type` et `value` sont ceux trouvés dans les évènements DevMel (less 3 sont requis) tatdis que `nValue` et/ou `sValue` sont ceux du dispositif Domoticz (seul un est requis, les deux sont autorisés).
+
+Vous pouvez définir `type` ou `commands` ou les deux (les valeurs standard seront utilisés pour les parties non spécifiées). Vous pouvez aussi n'en spécifier aucun, même si l'utilité reste à démontrer ;-)
 
 ## Architecture details / Détails sur l'architecture
 
