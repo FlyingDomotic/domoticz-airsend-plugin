@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.2">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.3">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -344,12 +344,11 @@ class BasePlugin:
                             Domoticz.Error(f"Can't find 'nValue' or 'sValue' in command {commandKey} {commandData}")
                             return
                         # Save nValue association
+                        key = deviceKey+'/'+str(commandMethod)+'/'+str(commandType)+'/'+str(commandValue)
                         if commandNValue != None:
-                            key = deviceKey+'/'+str(commandMethod)+'/'+str(commandType)+'/'+str(commandValue)
                             self.nValues[key] = str(commandNValue)
                         # Save sValue association
                         if commandSValue != None:
-                            key = deviceKey+'/'+str(commandMethod)+'/'+str(commandType)+'/'+str(commandValue)
                             self.sValues[key] = str(commandSValue)
                         # Save command association
                         key = deviceKey+'/'+commandKey
@@ -530,6 +529,12 @@ class BasePlugin:
             airSendMethod = elements[0]
             airSendType = elements[1]
             airSendValue = elements[2]
+            valueKey = device.DeviceID+'/'+str(commandMethod)+'/'+str(commandType)+'/'+str(commandValue)
+            # Load nValue and sValue if defined
+            if valueKey in self.nValues:
+                nValue = self.nValues[valueKey]
+            if valueKey in self.sValues:
+                sValue = self.sValues[valueKey]
             modeType = 'settings'
         else:
             modeType = 'standard'
