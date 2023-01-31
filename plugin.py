@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.3">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.4">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -529,7 +529,7 @@ class BasePlugin:
             airSendMethod = elements[0]
             airSendType = elements[1]
             airSendValue = elements[2]
-            valueKey = device.DeviceID+'/'+str(commandMethod)+'/'+str(commandType)+'/'+str(commandValue)
+            valueKey = device.DeviceID+'/'+str(airSendMethod)+'/'+str(airSendType)+'/'+str(airSendValue)
             # Load nValue and sValue if defined
             if valueKey in self.nValues:
                 nValue = self.nValues[valueKey]
