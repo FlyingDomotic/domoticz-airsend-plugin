@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.1">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.2">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -612,7 +612,7 @@ class BasePlugin:
                     ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+str(self.authorization)}\
                     ,data=jsonData \
                 )
-                device.Update(nValue=int(nValue), sValue = str(sValue)
+                device.Update(nValue=int(nValue), sValue = str(sValue))
             except requests.exceptions.RequestException as e:
                 Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             else:
