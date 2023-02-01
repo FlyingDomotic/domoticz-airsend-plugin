@@ -5,8 +5,8 @@
 		"webServerFolder": "/var/www/html/",
 		"webServerUrl": "http://127.0.0.1/",
 		"webServiceUrl": "http://127.0.0.1:33863/",
-		"protocolToListen" : 12345,
-		"authorization" : "sp://xxxxxxxxxxxxxxxx@xxx.xxx.xxx.xxx?gw=0"
+		"protocolToListen": 12345,
+		"authorization": "sp://xxxxxxxxxxxxxxxx@xxx.xxx.xxx.xxx?gw=0"
 	},
 	"mapping": [
 		{"Additional remote": {"remoteId": 11111, "remoteSource": 22222, "deviceId": 33333, "deviceSource": 44444}}
