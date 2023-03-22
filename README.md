@@ -306,3 +306,37 @@ In addition, an extract of web service log (AirSendWebService.log in web service
 Si quelque chose ne fonctionne pas comme documenté/souhaité, il peut être habile de passer le niveau de log du plug-in de `Normal` à `Extra verbose` avant de relancer le plug-in (pour relancer le plug-in, vous pouvez soit relancer Domoticz, soit cliquer sur "Modifier" lorsque le plug-in est sélectionné dans l'onglet `Matériel` du menu `Configuration`.
 
 De plus, un extrait du log du web service (AirSendWebService.log dans le répertoire du web service) peut aider.
+
+## Debugging AirSend commands / Déverminage des commandes Airsend
+
+In some cases, it's hard to determine if issue is comming from Domoticz plugin or AirSend system. One good tie-breaker is the direct curl command. Idea is to manually build the Webservice command, and send them directly, whithout Domoticz nor Airsend plugin. Easiest way is to use `curl` bash command from the system where Domoticz is installed. This command is native on Unix system and can be installed (for example) on Windows through Cygwin environment. Command format is:
+
+Dans certains cas, il est difficile de déterminer si l'erreur est causée par le plug-in Domoticz ou par le système AirSend lui-même. Une façon efficace de trancher est d'utiliser la commande curl directe. L'idée est de créer manuellement une commande et de l'envoyer au Webservice. LA façon la plus simple est de passer la commande bas `curl` sur le système où Domoticz est installé. Cette commande est native sous Unix, et peut (par exemple) être installée avec l'environnement Cygwin sou Windows. Le format de la commande est :
+
+```
+curl -X POST "http://aaaaaa/airsend/transfer" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"wait\": true, \"channel\": {\"id\":\"cccccc\",\"source\":\ssssss\"}, \"thingnotes\":{\"notes\":[{\"method\":mmm,\"type\":ttt,\"value\":vvv}]}}" -H "Authorization: Bearer bbbbbb"
+```
+
+with :
+
+    - aaaaaa = WebService URL, taken from AirSend.json file, item parameter\webServiceUrl. For example http://127.0.0.1:33863/
+    - cccccc = channel id to use
+    - ssssss = source to use 
+    - mmm = method to use
+    - ttt = type to use
+    - vvv = value to use
+    - bbbbbb = bearer, taken from AirSend.json file, item parameter\authorization. For example sp://abcdefghijklmnop@192.168.1.1?gw=0
+
+avec :
+
+    - aaaaaa = url du WebService à prendre dans le fichier AirSend.json à la rubrique parameter\webServiceUrl, par exemple http://127.0.0.1:33863/
+    - cccccc = channel id à utiliser
+    - ssssss = source à utiliser
+    - mmm = method à utiliser
+    - ttt = type à utiliser
+    - vvv = value à utiliser
+    - bbbbbb = bearer, à prendre dans le fichier AirSend.json à la rubrique parameter\authorization, par exemple sp://abcdefghijklmnop@192.168.1.1?gw=0
+
+This way, we're sure about sent command (which can be cut & pasted to DevMel), and be 100% sure that issue is not coming from plug-in, as even Domoticz can be stopped during the test.
+
+De cette façon, on est certain de la commande envoyée (qu'on peut d'ailleurs copier/coller pour l'envoyer à DevMel), et être certain que le souci ne vient pas du plug-in, puisque Domoticz peut même être arrêté pendant la manip.
