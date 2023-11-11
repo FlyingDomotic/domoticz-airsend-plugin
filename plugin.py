@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.4">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.5" externallink="https://github.com/FlyingDomotic/domoticz-airsend-plugin">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
