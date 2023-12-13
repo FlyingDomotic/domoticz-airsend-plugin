@@ -277,6 +277,30 @@ Le callback sera utilisé par le web service AirSend pour envoyer les trames re�
 
 Les trames capturées dépendent du récepteur, de la télécommande et du paramétrage du boitier AirSend. Cela peut être l'appui sur une télécommande, la confirmation d'un ordre ou un état distant. Etant donné la diversité des appareils, seuls des tests permettent de savoir avec précision les trames qui sont reçues. Avoir défini une trace complète et avoir accès au log du web service peuvent aider (voir plus bas).
 
+## AirSend web service install / Installation du web service AirSend
+
+The following instructions show how to install AirSend web service into `/home/pi/airsend`. Adapt them if you want to install in another folder.
+1. Copy `updateWebService.sh`, `AirSendWebServiceStart.py` and `AirSendWebServiceStop.py` from `example` folder to `/home/pi/airsend`.
+2. Set execute flag on these files (`chmod +x /home/pi/airsend/<each file name>`).
+3. If not installing in `/home/pi/airsend/`, modify content of these files with your personal folder.
+4. Execute `updateWebService.sh` to download web service and start it.
+
+Les instructions suivantes décrivent comment installer le web service AirSend dans le répertoire `/home/pi/airsend`. Adaptez-les si vous souhaitez installer dans un autre répertoire.
+1. Copier `updateWebService.sh`, `AirSendWebServiceStart.py` et `AirSendWebServiceStop.py` depuis le répertoire `example` vers `/home/pi/airsend`.
+2. Mettre le flag execute sur ces fichiers (`chmod +x /home/pi/airsend/<nom de chaque fichier>`).
+3. Si vous n'installez pas dans /home/pi/airsend/`, modifiez le contenu de ces fichiers avec votre nom de répertoire.
+4. Executer `updateWebService.sh` pour télécharger le web service et le lancer.
+
+## AirSend web service update / Mise à jour du web service AirSend
+
+Simply go to `/home/pi/airsend` and execute `updateWebService.sh`.
+
+Note that each activation of `updateWebService.sh` creates a sub-folder in `/home/pi/airsend` named after current date/time. Previous versions of web service (`AirSendWebService` and `AirSendWebService.sig`) are copied into `/previous` folder into date/time sub-folder created by installation/upgrade. To revert back to previous version, copy these 2 files back to `/home/pi/airsend`.
+
+Allez dans le répertoire `/home/pi/airsend` et executez `updateWebService.sh`.
+
+Notez que chaque activation de `updateWebService.sh` crée un sous répertoire dans `/home/pi/airsend` dont le nom comporte la date et l'heure courante. Les versions précédentes du web service (`AirSendWebService` et `AirSendWebService.sig`) sont copiées dans le répertoire `/previous` du répertoire date/heure crée par l'installation ou la mise à jour. Pour revenir à la version précédente, copiez ces 2 fichiers vers `/home/pi/airsend`.
+
 ## Supported AirSend device type and command / Types d'unités AirSend et commandes supportées
 
 Here's the list of AirSend devices type and commands currently supported:
