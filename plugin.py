@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.6" externallink="https://github.com/FlyingDomotic/domoticz-airsend-plugin">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.7" externallink="https://github.com/FlyingDomotic/domoticz-airsend-plugin">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -47,6 +47,9 @@ class BasePlugin:
     nValues = {}
     sValues = {}
     commands = {}
+    useInternalSensors = False
+    temperatureDeviceName = "Temperature"
+    illuminanceDeviceName = "Illuminance"
 
     # AirSend remote types
     airSendRemoteTypeButton = 4096
@@ -200,6 +203,62 @@ class BasePlugin:
                 unit = k
         return unit
 
+    # Reads an internal sensor and update corresponding Domoticz device
+    def getSensor(self, sensorId, deviceName):
+        jsonRequest = '{"wait": true, "channel": {"id":1}, "thingnotes":{"notes":[{"method":0,"type":'+str(sensorId)+'}]}}'
+        Domoticz.Debug(f"Sending JSON data: {jsonRequest}")
+        localUrl = str(self.webServiceUrl)+'airsend/transfer'
+        try:
+            # Send http POST request
+            response = requests.post(url=localUrl
+                ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+str(self.authorization)}\
+                ,data=jsonRequest \
+            )
+        except requests.exceptions.RequestException as e:
+            # Error posting request
+            Domoticz.Error(f"Error posting {str(jsonRequest)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+        else:
+            if response.status_code != self.htppStatusOk:
+                # HTTP error code is not 200
+                Domoticz.Error(f"Error {response.status_code} in POST {response.url}, data {jsonRequest}")
+            else:
+                Domoticz.Debug(f"Response: {response.text}")
+                try:
+                    # Decode JSON answer
+                    jsonData = json.loads(response.text)
+                except Exception as e:
+                    # Bad JSON answer
+                    Domoticz.Error(f"Error parsing {response.text} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+                else:
+                    try:
+                        # Extract "type" value
+                        returnedType = self.getPathValue(jsonData, "type")
+                    except Exception as e:
+                            # Can't extract "type"
+                            Domoticz.Error(f"Error extracting type from  {response.text} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+                    else:
+                        # Check type against GOT event
+                        if returnedType == self.airSendEventTypeGot:
+                            try:
+                                # Extract "value" 
+                                returnedValue = self.getPathValue(jsonData, "thingnotes/notes")[0]['value']
+                            except Exception as e:
+                                # Can't extract "value"
+                                Domoticz.Error(f"Error extracting value from  {response.text} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+                            else:
+                                # Here, we've got value, get required device
+                                device = self.getDevice(deviceName)
+                                if device != None:
+                                    Domoticz.Debug(f'Setting {device.Name} to {returnedValue}')
+                                    device.Update(nValue=0, sValue = str(returnedValue))
+                                else:
+                                    Domoticz.Error(f"Can't find {deviceName}, please restart plugin")
+                        elif returnedType == self.airSendEventTypeUnsupported:
+                            jsonFile = Parameters["Mode1"]
+                            Domoticz.Error(f"Your AirSend box is lacking internal {deviceName} device. Set 'useInternalSensors' to false in {jsonFile} file ")
+                        else:
+                            Domoticz.Error(f"Bad type {returnedType} returned in {response.text} for {jsonRequest}")
+
     # Called when plug-in starts
     def onStart(self):
         # Parse options
@@ -250,6 +309,7 @@ class BasePlugin:
             Domoticz.Error(f"Can't find 'webServiceUrl' in {jsonFile}")
             return
         self.protocolToListen = self.getPathValue(jsonData, 'parameters/protocolToListen')
+        self.useInternalSensors = self.getPathValue(jsonData, 'parameters/useInternalSensors')
         self.webServerFolder = self.getPathValue(jsonData, 'parameters/webServerFolder')
         if self.protocolToListen and not self.webServerFolder:
             Domoticz.Error(f"Can't find 'webServerFolder' in {jsonFile}")
@@ -453,29 +513,20 @@ class BasePlugin:
                 os.chmod(phpFile, 0o644)
             except Exception as e:
                 Domoticz.Error(f"Can't protect {phpFile} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-            # Set the callback
-            if self.protocolToListen:
-                callbackProtocol = str(self.protocolToListen)
-                callbackSpecs = str(self.webServerUrl)+str(self.airSendCallbackName)
-                Domoticz.Debug(f"Binding prototol {callbackProtocol} to {callbackSpecs}")
-                jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
-                localUrl = str(self.webServiceUrl+'airsend/bind')
-                try:
-                    response = requests.post(url=localUrl \
-                        ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+self.authorization}\
-                        ,data=jsonData \
-                    )
-                except requests.exceptions.RequestException as e:
-                    Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
-                else:
-                    if response.status_code != self.htppStatusOk:
-                        Domoticz.Error(f"Error {response.status_code} in POST {response.url}, data {jsonData}")
-                    else:
-                        Domoticz.Log(f"{jsonData} returned Ok")
-
+        # Do we have sensors?
+        if self.useInternalSensors:
+            # Create temperature sensor
+            if self.getDevice(self.temperatureDeviceName) == None:
+                Domoticz.Log("Creating device " + self.temperatureDeviceName)
+                Domoticz.Device(Name=self.temperatureDeviceName, Unit=self.getNextDeviceId(), Type=80, Subtype=5, DeviceID=self.temperatureDeviceName, Used=True).Create()
+            # Create illuminance sensor
+            if self.getDevice(self.illuminanceDeviceName) == None:
+                Domoticz.Log("Creating device " + self.illuminanceDeviceName)
+                Domoticz.Device(Name=self.illuminanceDeviceName, Unit=self.getNextDeviceId(), Type=246, Subtype=1, DeviceID=self.illuminanceDeviceName, Used=True).Create()
         # Enable heartbeat
         Domoticz.Heartbeat(60)
         self.configOk = True
+        self.onHeartbeat()
 
     # Called when plug-in stops
     def onStop(self):
@@ -609,20 +660,20 @@ class BasePlugin:
                 Domoticz.Log(f"Command: '{Command}' not supported yet for {device.Name}. Please ask for support.")
         if airSendType != -1:
             elements = device.DeviceID.split('/')
-            jsonData = '{"wait": true, "channel": {"id":"'+elements[0]+'","source":"'+elements[1]+'"}, "thingnotes":{"notes":[{"method":'+str(airSendMethod)+',"type":'+str(airSendType)+',"value":'+str(airSendValue)+'}]}}'
-            Domoticz.Log(f"Sending JSON data: {jsonData}")
+            jsonRequest = '{"wait": true, "channel": {"id":"'+elements[0]+'","source":"'+elements[1]+'"}, "thingnotes":{"notes":[{"method":'+str(airSendMethod)+',"type":'+str(airSendType)+',"value":'+str(airSendValue)+'}]}}'
+            Domoticz.Log(f"Sending JSON data: {jsonRequest}")
             localUrl = str(self.webServiceUrl)+'airsend/transfer'
             try:
                 response = requests.post(url=localUrl
                     ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+str(self.authorization)}\
-                    ,data=jsonData \
+                    ,data=jsonRequest \
                 )
                 device.Update(nValue=int(nValue), sValue = str(sValue))
             except requests.exceptions.RequestException as e:
-                Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+                Domoticz.Error(f"Error posting {str(jsonRequest)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             else:
                 if response.status_code != self.htppStatusOk:
-                    Domoticz.Error(f"Error {response.status_code} in POST {response.url}, data {jsonData}")
+                    Domoticz.Error(f"Error {response.status_code} in POST {response.url}, data {jsonRequest}")
 
     # Called when a device is added to this plug-in
     def onDeviceAdded(self, Unit):
@@ -748,18 +799,22 @@ class BasePlugin:
         if self.protocolToListen:
             callbackProtocol = str(self.protocolToListen)
             callbackSpecs = str(self.webServerUrl)+str(self.airSendCallbackName)
-            jsonData = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
+            jsonRequest = '{"duration": 0, "channel": {"id": '+callbackProtocol+'}, "callback": "'+callbackSpecs+'"}'
             localUrl = str(self.webServiceUrl)+'airsend/bind'
             try:
                 response = requests.post(localUrl
                     ,headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer '+str(self.authorization)}\
-                    ,data=jsonData \
+                    ,data=jsonRequest \
                 )
             except requests.exceptions.RequestException as e:
-                Domoticz.Error(f"Error posting {str(jsonData)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
+                Domoticz.Error(f"Error posting {str(jsonRequest)} to {localUrl} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
             else:
                 if response.status_code != self.htppStatusOk:
-                    Domoticz.Error(f"Error {response.status_code} in POST {response.url}, data {jsonData}")
+                    Domoticz.Error(f"Error {response.status_code} in POST {response.url}, data {jsonRequest}")
+        if self.useInternalSensors:
+            # Request temperature and illuminance
+            self.getSensor(self.airSendNoteTypeTemperature, self.temperatureDeviceName)
+            self.getSensor(self.airSendNoteTypeIlluminance, self.illuminanceDeviceName)
 
     # Dumps configuration to log
     def dumpConfigToLog(self):

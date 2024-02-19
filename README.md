@@ -114,6 +114,7 @@ De plus, il utilise un fichier de configuration externe au format JSON pour déf
 		"webServerUrl": "http://127.0.0.1/",
 		"webServiceUrl": "http://127.0.0.1:33863/",
 		"protocolToListen": 12345,
+		"useInternalSensors": false,
 		"authorization": "sp://xxxxxxxxxxxxxxxx@xxx.xxx.xxx.xxx?gw=0"
 	},
 	"mapping": [
@@ -142,6 +143,12 @@ Donne le nom du fichier de configuration AirSend au format YAML.
 ```
 Specify AirSend web service URL to use.
 Donne l'adresse du web service AirSpend à utiliser.
+
+```ts
+"useInternalSensors": false,
+```
+Set it to 'true' if you have a single frequency (non DUO) box and want to create temperature and illuminance devices updated every minute.
+Mettez-le à 'true' si vous avez un boîtier mono-fréquence (non DUO) et voulez créer des senseurs de température et de luminosité mis à jour chaque minute.
 
 ```ts
 "authorization": "sp://xxxxxxxxxxxxxxxx@xxx.xxx.xxx.xxx?gw=0"
