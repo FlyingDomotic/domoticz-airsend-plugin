@@ -204,7 +204,7 @@ class BasePlugin:
         return unit
 
     # Reads an internal sensor and update corresponding Domoticz device
-    def getSensor(self, sensorId, deviceName):
+    def getSensor(self, sensorId, deviceName, offset):
         jsonRequest = '{"wait": true, "channel": {"id":1}, "thingnotes":{"notes":[{"method":0,"type":'+str(sensorId)+'}]}}'
         Domoticz.Debug(f"Sending JSON data: {jsonRequest}")
         localUrl = str(self.webServiceUrl)+'airsend/transfer'
@@ -241,7 +241,7 @@ class BasePlugin:
                         if returnedType == self.airSendEventTypeGot:
                             try:
                                 # Extract "value" 
-                                returnedValue = self.getPathValue(jsonData, "thingnotes/notes")[0]['value']
+                                returnedValue = float(self.getPathValue(jsonData, "thingnotes/notes")[0]['value']) + offset
                             except Exception as e:
                                 # Can't extract "value"
                                 Domoticz.Error(f"Error extracting value from  {response.text} - {type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
@@ -813,8 +813,8 @@ class BasePlugin:
                     Domoticz.Error(f"Error {response.status_code} in POST {response.url}, data {jsonRequest}")
         if self.useInternalSensors:
             # Request temperature and illuminance
-            self.getSensor(self.airSendNoteTypeTemperature, self.temperatureDeviceName)
-            self.getSensor(self.airSendNoteTypeIlluminance, self.illuminanceDeviceName)
+            self.getSensor(self.airSendNoteTypeTemperature, self.temperatureDeviceName, -273.15)
+            self.getSensor(self.airSendNoteTypeIlluminance, self.illuminanceDeviceName, 0)
 
     # Dumps configuration to log
     def dumpConfigToLog(self):
