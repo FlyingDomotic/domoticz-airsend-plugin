@@ -1,6 +1,6 @@
 #           AirSend plugin
 """
-<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.7" externallink="https://github.com/FlyingDomotic/domoticz-airsend-plugin">
+<plugin key="AirSend" name="AirSend plugin" author="Flying Domotic" version="1.0.8" externallink="https://github.com/FlyingDomotic/domoticz-airsend-plugin">
     <description>
       AirSend plug-in from Flying Domotic<br/><br/>
       Integrates AirSend devices into Domoticz<br/>
@@ -524,7 +524,7 @@ class BasePlugin:
                 Domoticz.Log("Creating device " + self.illuminanceDeviceName)
                 Domoticz.Device(Name=self.illuminanceDeviceName, Unit=self.getNextDeviceId(), Type=246, Subtype=1, DeviceID=self.illuminanceDeviceName, Used=True).Create()
         # Enable heartbeat
-        Domoticz.Heartbeat(60)
+        Domoticz.Heartbeat(30)
         self.configOk = True
         self.onHeartbeat()
 
